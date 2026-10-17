@@ -51,6 +51,18 @@ The two lines at the top are the project's guiding principles. In practice they 
 
 See [`docs/architecture/`](docs/architecture/) for the network architecture, [`docs/hardware/`](docs/hardware/) for each machine and [`docs/issues/`](docs/issues/) for known technical issues.
 
+## Computerfluid Computing
+
+> ***Born on one platform. Free to compute as another.***
+
+**Computerfluid** *(adjective, computing)*: a state or characteristic of a computer system in which its functional platform identity is not exclusively determined by its original hardware architecture, allowing it to operate as, emulate, or interact with multiple computing platforms.
+
+The Love Shack Network puts this into practice. For example, the Amiga 500 rev. 5 runs AmigaOS on an emulated 68000 CPU, provided by a Raspberry Pi in its CPU socket. The original Amigas also share one file library with modern computers.
+
+*The Love Shack Network: Where All Tastes of Computers Meet.*
+
+Read the full definition, the Dutch definition, the three identities (hardware, software and network), realised and possible examples, and the origin of the term and the project name in [`docs/COMPUTERFLUID.md`](docs/COMPUTERFLUID.md).
+
 ## Featured examples
 
 ### [Amiga 600: direct IPP printing over a Plipbox, no coprocessor](amiga/a600/)
@@ -77,6 +89,7 @@ The images contain only this project's files plus the MIT-licensed AmiAirPrint b
 ## Repository layout
 
 ```
+docs/COMPUTERFLUID.md  the Computerfluid Computing concept
 docs/architecture/   network architecture, diagrams, address plan
 docs/hardware/       one page per machine
 docs/issues/         known technical issues (analysis, no unapproved fixes)
@@ -114,6 +127,7 @@ The Amiga scripts and their on-screen texts are **Dutch**. They are the exact fi
 |---|---|
 | Original code | MIT, see [`LICENSE`](LICENSE) |
 | Original documentation and photos | CC BY 4.0, see [`LICENSE-docs`](LICENSE-docs) |
+| [`docs/COMPUTERFLUID.md`](docs/COMPUTERFLUID.md) | MIT, see [`LICENSE`](LICENSE) |
 | Third-party components | their own licences, see [`THIRD_PARTY.md`](THIRD_PARTY.md) |
 
 ## Trademarks
