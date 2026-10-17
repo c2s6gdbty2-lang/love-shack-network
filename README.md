@@ -42,14 +42,14 @@ The two lines at the top are the project's guiding principles. In practice they 
 
 | Machine | Network | Files | Printing | Status |
 |---|---|---|---|---|
-| Amiga 500 rev. 5, PiStorm (Pi 3A+, Emu68), Framethrower | Wi-Fi WPA2 (WiFiPi.device + PR #1, WirelessManager, AmiTCP 3.0b2) | RetroMount (`Retro:`) | AmiAirPrint → IPP → printer | ✅ |
-| Amiga 600, 68000 at 7 MHz, no accelerator | Plipbox, AmiTCP 3.0b2 | RetroMount | AmiAirPrint → IPP → printer | ✅ |
+| Amiga 500 rev. 5, PiStorm (Pi 3A+, Emu68), Framethrower | Wi-Fi WPA2 (WiFiPi.device + PR #1, WirelessManager, AmiTCP 3.0b2); Plipbox fallback | RetroMount (`Retro:`), [AmigaShare:](docs/AmigaShare.md) (read/write) | AmiAirPrint → IPP → printer | ✅ |
+| Amiga 600, 68000 at 7 MHz, no accelerator | Plipbox, AmiTCP 3.0b2 | RetroMount, [AmigaShare:](docs/AmigaShare.md) | AmiAirPrint → IPP → printer | ✅ |
 | Amiga 500 rev. 6A, TerribleFire TF536 | Wodem, SLIP at 19200 baud | RetroMount | – | 🧪 / 🛠️ |
 | Atari 800XL, FujiNet | Wi-Fi (FujiNet) | FujiNet | FujiNet printer → server watcher → CUPS | ✅ |
 | Commodore 64 Ultimate | Ultimate network | FTP | Ultimate printer → server spooler → CUPS | ✅ |
 | Raspberry Pi 5 retro server | LAN | Samba, FTP | CUPS queue, print watchers | ✅ |
 
-See [`docs/architecture/`](docs/architecture/) for the network architecture, [`docs/hardware/`](docs/hardware/) for each machine and [`docs/issues/`](docs/issues/) for known technical issues.
+See [`docs/AmigaShare.md`](docs/AmigaShare.md) for the shared read/write volume, [`docs/architecture/`](docs/architecture/) for the network architecture, [`docs/hardware/`](docs/hardware/) for each machine and [`docs/issues/`](docs/issues/) for known technical issues.
 
 ## Computerfluid Computing
 
