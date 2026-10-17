@@ -11,6 +11,7 @@ An Amiga 500 rev. 5 with a PiStorm (Raspberry Pi 3A+ running Emu68):
 | Wi-Fi (WPA2), static IP | ✅ **Proven on real hardware**, 13-10-2026. It needs a driver fix, see below. |
 | RetroMount (`Retro:`) | ✅ Proven on real hardware, 13-10-2026 |
 | Direct printing (AirPrintPS 1.0) | ✅ Proven on real hardware, 14-10-2026, tests A2–A6 and a reboot. The public ADF was retested in a clean emulator on 17-10-2026. |
+| Plipbox fallback network (PlipNet 1.1, NOBURST) | ✅ Proven on real hardware, 17-10-2026. Burst mode does not work under Emu68, see [Issue 0002](../../docs/issues/0002-plipbox-noburst-pistorm.md). PlipNet itself is not part of this release. |
 | Fallback printing through the Pi | 📋 Built and emulator-tested, **not activated, not part of this release** |
 | WiFiNet package as a disk image | 🛠️ Not released yet; see [What is not released](#what-is-not-released-yet) |
 
@@ -24,7 +25,7 @@ An Amiga 500 rev. 5 with a PiStorm (Raspberry Pi 3A+ running Emu68):
 | Accelerator | PiStorm with a Raspberry Pi 3A+, Emu68 |
 | Video | Framethrower ⟨**TODO:** model, firmware and connection still to be documented⟩ |
 | Kickstart / Workbench | Kickstart 45.66 (exec 45.25) with Workbench 3.1 modules (40.42); printer.device 39.6 |
-| Network | the Pi 3A+'s Wi-Fi chip through `wifipi.device`. A Plipbox on the parallel port is the reserve route (PlipNet). |
+| Network | the Pi 3A+'s Wi-Fi chip through `wifipi.device`. A Plipbox on the parallel port is the reserve route (PlipNet 1.1 with NOBURST, [Issue 0002](../../docs/issues/0002-plipbox-noburst-pistorm.md)). |
 | Storage | `Work:` partition for the packages ⟨**TODO:** storage controller details⟩ |
 | Floppy | Gotek, used to transfer the ADFs |
 
@@ -79,7 +80,7 @@ WiFiNet installs into `Work:WiFiNet` and never touches `DEVS:Networks`, the star
 
 Only one connection runs at a time:
 - StartWiFi refuses while PlipNet is active, and the reverse.
-- To switch to the Plipbox: StopWiFi, then *Plipbox Start*.
+- To switch between Wi-Fi and the Plipbox, use a cold boot. PlipNet 1.1's *Plipbox Start* refuses while `wifipi.device` is still in memory.
 
 **Credentials.**
 - The Wi-Fi password is stored in plain text in `Work:WiFiNet/Prefs/Wireless.prefs`. Do not share that folder.
