@@ -1,0 +1,17 @@
+; $VER: Poortmelding 1.0 (16.10.2026) A600AirPrint
+; Hulpscript: legt de uitkomst van Poortcheck (APpc) uit.
+IF "$APpc" EQ "geen"
+  Echo "GESTOPT: in Prefs/Printer is (nog) niet de driver AirPrint gekozen."
+  Echo "         SYS:Prefs/Printer: driver AirPrint, poort Serial, Save."
+EndIF
+IF "$APpc" EQ "parallel"
+  Echo "GESTOPT: in Prefs/Printer staat poort Parallel. Op de A600 zit daar de"
+  Echo "         Plipbox op; dan geeft PRT: 'object not found'."
+  Echo "         SYS:Prefs/Printer: poort Serial kiezen, Save. AirPrint stuurt"
+  Echo "         niets naar de seriele poort."
+EndIF
+IF "$APpc" EQ "bezet"
+  Echo "GESTOPT: de seriele poort is nu in gebruik door een ander programma"
+  Echo "         (terminal, modem, MIDI, AUX:). Sluit dat eerst; printer.device"
+  Echo "         moet de poort kort kunnen openen (er gaat niets naartoe)."
+EndIF

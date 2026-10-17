@@ -1,0 +1,3 @@
+# KIND	path suffix	reason (every exception must be justified and checked by hand)
+WB	A600AirPrint-public.adf	Names such as printer.device and MultiView appear only inside the package's own script texts. The xdftool file listing (verified 17-10-2026) shows no Workbench files.
+WB	AirPrintPS-public.adf	Same reason as above; file listing verified 17-10-2026.

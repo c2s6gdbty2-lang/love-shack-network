@@ -1,0 +1,174 @@
+.KEY AUTO/S
+.BRA {
+.KET }
+; $VER: Verwijderen 1.0 (16.10.2026) A600AirPrint
+; Zet de toestand van voor Installeer terug uit Work:AmiAirPrint-Backup:
+; bestanden die toen al bestonden worden teruggezet, nieuwe worden verwijderd,
+; ook ENVARC:Sys/printer.prefs en printergfx.prefs (de printerkeuze).
+; Work:A600AirPrint gaat mee in de back-up, die daarna Work:AmiAirPrint-Backup.oud
+; heet (mag je zelf weggooien). Controleert tot slot de controlesommen van de
+; bestanden die nooit mochten veranderen (Startup-Sequence, AmiTCP, ...).
+; AUTO = zonder vraag (gebruikt door Installeer na een fout).
+FailAt 21
+Echo "A600AirPrint - AmiAirPrint verwijderen"
+Set APb Work:AmiAirPrint-Backup
+IF NOT EXISTS $APb
+  Echo "GESTOPT: $APb bestaat niet; A600AirPrint is niet geinstalleerd."
+  Quit 10
+EndIF
+IF NOT "{AUTO}" EQ "AUTO"
+  RequestChoice >ENV:APSkeuze "A600AirPrint" "AmiAirPrint verwijderen en de vorige*Nprinterinstelling terugzetten?" "Verwijderen" "Stoppen"
+  IF NOT "$APSkeuze" EQ "1"
+    Echo "Gestopt, niets gewijzigd."
+    Quit 5
+  EndIF
+EndIF
+Set APf 0
+; --- per bestand: terugzetten of verwijderen
+IF EXISTS $APb/dev
+  Copy $APb/dev DEVS:airprint.device CLONE QUIET
+Else
+  IF EXISTS $APb/dev.nieuw
+    IF EXISTS DEVS:airprint.device
+      Delete >NIL: DEVS:airprint.device QUIET
+    EndIF
+  EndIF
+EndIF
+IF EXISTS $APb/drv
+  Copy $APb/drv DEVS:Printers/AirPrint CLONE QUIET
+Else
+  IF EXISTS $APb/drv.nieuw
+    IF EXISTS DEVS:Printers/AirPrint
+      Delete >NIL: DEVS:Printers/AirPrint QUIET
+    EndIF
+  EndIF
+EndIF
+IF EXISTS $APb/prefs
+  Copy $APb/prefs SYS:Prefs/AmiAirPrint CLONE QUIET
+Else
+  IF EXISTS $APb/prefs.nieuw
+    IF EXISTS SYS:Prefs/AmiAirPrint
+      Delete >NIL: SYS:Prefs/AmiAirPrint QUIET
+    EndIF
+  EndIF
+EndIF
+IF EXISTS $APb/prefsinfo
+  Copy $APb/prefsinfo SYS:Prefs/AmiAirPrint.info CLONE QUIET
+Else
+  IF EXISTS $APb/prefsinfo.nieuw
+    IF EXISTS SYS:Prefs/AmiAirPrint.info
+      Delete >NIL: SYS:Prefs/AmiAirPrint.info QUIET
+    EndIF
+  EndIF
+EndIF
+IF EXISTS $APb/apprefs
+  Copy $APb/apprefs ENVARC:AirPrint.prefs CLONE QUIET
+  Copy $APb/apprefs ENV:AirPrint.prefs QUIET
+Else
+  IF EXISTS $APb/apprefs.nieuw
+    IF EXISTS ENVARC:AirPrint.prefs
+      Delete >NIL: ENVARC:AirPrint.prefs QUIET
+    EndIF
+    IF EXISTS ENV:AirPrint.prefs
+      Delete >NIL: ENV:AirPrint.prefs QUIET
+    EndIF
+  EndIF
+EndIF
+IF EXISTS $APb/prtprefs
+  Copy $APb/prtprefs ENVARC:Sys/printer.prefs CLONE QUIET
+  Copy $APb/prtprefs ENV:Sys/printer.prefs QUIET
+Else
+  IF EXISTS $APb/prtprefs.nieuw
+    IF EXISTS ENVARC:Sys/printer.prefs
+      Delete >NIL: ENVARC:Sys/printer.prefs QUIET
+    EndIF
+    IF EXISTS ENV:Sys/printer.prefs
+      Delete >NIL: ENV:Sys/printer.prefs QUIET
+    EndIF
+  EndIF
+EndIF
+IF EXISTS $APb/gfxprefs
+  Copy $APb/gfxprefs ENVARC:Sys/printergfx.prefs CLONE QUIET
+  Copy $APb/gfxprefs ENV:Sys/printergfx.prefs QUIET
+Else
+  IF EXISTS $APb/gfxprefs.nieuw
+    IF EXISTS ENVARC:Sys/printergfx.prefs
+      Delete >NIL: ENVARC:Sys/printergfx.prefs QUIET
+    EndIF
+    IF EXISTS ENV:Sys/printergfx.prefs
+      Delete >NIL: ENV:Sys/printergfx.prefs QUIET
+    EndIF
+  EndIF
+EndIF
+; --- controle: staat alles terug?
+IF EXISTS $APb/dev.nieuw
+  IF EXISTS DEVS:airprint.device
+    Echo "  nog aanwezig: DEVS:airprint.device"
+    Set APf 1
+  EndIF
+EndIF
+IF EXISTS $APb/drv.nieuw
+  IF EXISTS DEVS:Printers/AirPrint
+    Echo "  nog aanwezig: DEVS:Printers/AirPrint"
+    Set APf 1
+  EndIF
+EndIF
+IF EXISTS $APb/prefs.nieuw
+  IF EXISTS SYS:Prefs/AmiAirPrint
+    Echo "  nog aanwezig: SYS:Prefs/AmiAirPrint (staat het nog open?)"
+    Set APf 1
+  EndIF
+EndIF
+IF EXISTS $APb/apprefs.nieuw
+  IF EXISTS ENVARC:AirPrint.prefs
+    Echo "  nog aanwezig: ENVARC:AirPrint.prefs"
+    Set APf 1
+  EndIF
+EndIF
+IF EXISTS $APb/prtprefs.nieuw
+  IF EXISTS ENVARC:Sys/printer.prefs
+    Echo "  nog aanwezig: ENVARC:Sys/printer.prefs"
+    Set APf 1
+  EndIF
+EndIF
+IF "$APf" EQ "1" VAL
+  Echo "FOUT: niet alles kon worden teruggezet (staat de printer of het"
+  Echo "      instellingenprogramma nog open? Reboot en voer Verwijderen opnieuw"
+  Echo "      uit). De back-up blijft staan."
+  Quit 20
+EndIF
+; --- controlesommen van wat nooit mocht veranderen
+IF EXISTS $APb/Beschermd.lst
+  IF EXISTS Work:A600AirPrint/C/CRCLijst
+    Copy Work:A600AirPrint/C/CRCLijst T:APv-crc QUIET
+  Else
+    Copy C/CRCLijst T:APv-crc QUIET
+  EndIF
+  Echo "Controlesommen (Startup-Sequence, DEVS:, L:, AmiTCP, WBStartup):"
+  T:APv-crc $APb/Beschermd.lst
+  IF WARN
+    Echo "LET OP: een of meer van deze bestanden zijn sinds de installatie"
+    Echo "        veranderd (niet door A600AirPrint). Zie de lijst hierboven."
+  EndIF
+  Delete >NIL: T:APv-crc QUIET
+EndIF
+; --- Work:A600AirPrint gaat mee in de back-up (ook als dit script daar draait)
+IF EXISTS $APb/werk.nieuw
+  IF EXISTS Work:A600AirPrint
+    Rename Work:A600AirPrint $APb/A600AirPrint QUIET
+  EndIF
+  IF EXISTS Work:A600AirPrint.info
+    Rename Work:A600AirPrint.info $APb/A600AirPrint.info QUIET
+  EndIF
+EndIF
+IF EXISTS Work:AmiAirPrint-Backup.oud
+  Delete >NIL: Work:AmiAirPrint-Backup.oud ALL QUIET
+EndIF
+Rename $APb Work:AmiAirPrint-Backup.oud
+IF WARN
+  Echo "LET OP: kon de back-up niet hernoemen; Work:AmiAirPrint-Backup blijft staan."
+  Echo "        AmiAirPrint is wel verwijderd."
+  Quit 10
+EndIF
+Echo "OK: AmiAirPrint is verwijderd; de vorige printerinstelling staat terug."
+Echo "    (Kopie: Work:AmiAirPrint-Backup.oud; mag weg.) Reboot nu."

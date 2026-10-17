@@ -1,0 +1,39 @@
+; $VER: TestTekst 1.0 (14.10.2026) AirPrintPS
+; Stap 1 van de printertest: een korte tekst via PRT: (printer.device +
+; de gekozen driver). Een pagina, zwart-wit.
+FailAt 21
+Echo "AirPrintPS - TestTekst (1 pagina via PRT:)"
+Version >NIL: bsdsocket.library
+IF WARN
+  Echo "FOUT: het netwerk staat uit. Eerst StartWiFi."
+  Quit 20
+EndIF
+IF NOT EXISTS DEVS:Printers/AirPrint
+  Echo "FOUT: AmiAirPrint is niet geinstalleerd (eerst Installeer)."
+  Quit 20
+EndIF
+Search >NIL: ENV:Sys/printer.prefs AirPrint QUIET
+IF WARN
+  Echo "LET OP: in Prefs/Printer is (nog) niet AirPrint gekozen; dan gaat de"
+  Echo "        tekst naar de gewone parallelle poort. Gestopt."
+  Quit 10
+EndIF
+RequestChoice >ENV:APSkeuze "TestTekst" "Een testpagina naar de printer sturen?" "Afdrukken" "Stoppen"
+IF NOT $APSkeuze EQ 1
+  Quit 5
+EndIF
+Echo >T:APS-test.txt "AirPrintPS testpagina 1: tekst via PRT: en printer.device"
+Echo >>T:APS-test.txt "Amiga 500 rev. 5 + PiStorm, AmiTCP 3.0b2, AmiAirPrint 1.2-ps1"
+Echo >>T:APS-test.txt ""
+Echo >>T:APS-test.txt "Latin-1: e-trema (ë) e-aigu (é) u-umlaut (ü) ringel-s (ß) pond (£)"
+Echo >>T:APS-test.txt "Vet: *E[1mDit hoort vet te zijn*E[22m, normaal weer."
+Echo >>T:APS-test.txt "Onderstreept: *E[4mdit hoort onderstreept te zijn*E[24m."
+Echo >>T:APS-test.txt "Regel 7 - 0123456789 abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+Copy T:APS-test.txt PRT:
+IF WARN
+  Delete >NIL: T:APS-test.txt QUIET
+  Echo "FOUT: PRT: gaf een fout."
+  Quit 20
+EndIF
+Delete >NIL: T:APS-test.txt QUIET
+Echo "OK: verstuurd naar PRT:. Controleer de printer."

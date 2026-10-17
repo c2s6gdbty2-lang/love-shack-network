@@ -1,0 +1,7 @@
+# local network details and build output never go into git
+network.ini
+*.local.ini
+amiga/build/out/
+__pycache__/
+*.pyc
+.lsn-secrets

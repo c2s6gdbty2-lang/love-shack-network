@@ -1,0 +1,236 @@
+; $VER: Installeer 1.0 (16.10.2026) A600AirPrint
+; Installeert AmiAirPrint 1.2-ps1 op de A600: dezelfde bestanden als op de A500
+; (AirPrintPS, byte-identiek). Wijzigt ALLEEN (alles nieuw):
+;   DEVS:airprint.device, DEVS:Printers/AirPrint
+;   SYS:Prefs/AmiAirPrint + .info              (grafisch instellingenprogramma)
+;   ENVARC:AirPrint.prefs + ENV:AirPrint.prefs (@@PRINTER_NAME@@ @@PRINTER_HOST@@)
+;   Work:A600AirPrint + .info                  (ControleerPrinter, TestTekst, TestGrafiek,
+;                                               Controle, Verwijderen, LeesMij)
+; Bestaat een van deze al, dan stopt Installeer of wordt hij eerst bewaard.
+; ENVARC:Sys/printer.prefs en printergfx.prefs worden alleen BEWAARD; de keuze
+; "AirPrint, poort Serieel" doe je zelf in Prefs/Printer.
+; Back-up en controlesommen: Work:AmiAirPrint-Backup.
+; NIET gewijzigd: Startup-Sequence, User-Startup, printer.device, parallel.device,
+; serial.device, DEVS:Networks, AmiTCP, Plipbox, RetroMount.
+; Bij een fout tijdens het kopieren zet Installeer alles zelf terug (Verwijderen AUTO).
+FailAt 21
+Echo "A600AirPrint - AmiAirPrint installeren"
+Echo ""
+IF NOT EXISTS Bestanden/airprint.device
+  Echo "FOUT: start dit vanaf de A600AirPrint-diskette (dubbelklik het icoon,"
+  Echo "      of in een Shell eerst: CD A600AirPrint:)"
+  Quit 20
+EndIF
+Echo "[1] Controles"
+Version >NIL: exec.library 39
+IF WARN
+  Echo "FOUT: AmigaOS 3.0 of nieuwer is nodig."
+  Quit 20
+EndIF
+IF NOT EXISTS DEVS:printer.device
+  Echo "FOUT: DEVS:printer.device ontbreekt."
+  Quit 20
+EndIF
+Version >NIL: DEVS:printer.device 39
+IF WARN
+  Echo "FOUT: DEVS:printer.device is ouder dan versie 39."
+  Quit 20
+EndIF
+Version >NIL: DEVS:printer.device 42
+IF NOT WARN
+  Echo "GESTOPT: DEVS:printer.device is versie 42 of hoger (V42Printer of OS 3.2)."
+  Echo "         Daarmee is A600AirPrint niet getest. Stuur het Controle-verslag."
+  Quit 10
+EndIF
+IF EXISTS DEVS:PrinterPorts
+  Echo "GESTOPT: DEVS:PrinterPorts bestaat (rest van V42Printer). Stuur het"
+  Echo "         Controle-verslag; er is niets gewijzigd."
+  Quit 10
+EndIF
+IF EXISTS DEVS:netpar.device
+  Echo "GESTOPT: DEVS:netpar.device bestaat (rest van NetPar). Stuur het"
+  Echo "         Controle-verslag; er is niets gewijzigd."
+  Quit 10
+EndIF
+IF NOT EXISTS DEVS:Printers
+  Echo "FOUT: de lade DEVS:Printers ontbreekt."
+  Quit 20
+EndIF
+IF NOT EXISTS SYS:Prefs
+  Echo "FOUT: de lade SYS:Prefs ontbreekt."
+  Quit 20
+EndIF
+Assign >NIL: Work: EXISTS
+IF WARN
+  Echo "FOUT: Work: ontbreekt (nodig voor de back-up)."
+  Quit 20
+EndIF
+IF EXISTS Work:AmiAirPrint-Backup
+  Echo "GESTOPT: Work:AmiAirPrint-Backup bestaat al: AmiAirPrint is al"
+  Echo "         geinstalleerd. Eerst Verwijderen, dan opnieuw installeren."
+  Quit 10
+EndIF
+IF EXISTS Work:A600AirPrint
+  Echo "GESTOPT: Work:A600AirPrint bestaat al. Hernoem of verwijder die lade"
+  Echo "         eerst; er is niets gewijzigd."
+  Quit 10
+EndIF
+C/CRCLijst VRIJ SYS: MIN 300
+IF WARN
+  Echo "FOUT: SYS: is niet beschrijfbaar of heeft minder dan 300 KB vrij."
+  Quit 20
+EndIF
+C/CRCLijst VRIJ Work: MIN 200
+IF WARN
+  Echo "FOUT: Work: is niet beschrijfbaar of heeft minder dan 200 KB vrij."
+  Quit 20
+EndIF
+Set APSprefs AmiAirPrintPrefsClassic
+Set APSdoel Hulp/Doel-31.lst
+Version >NIL: workbench.library 47
+IF NOT WARN
+  Set APSprefs AmiAirPrintPrefs
+  Set APSdoel Hulp/Doel-32.lst
+EndIF
+Version >NIL: bsdsocket.library
+IF WARN
+  Echo "    Netwerk staat uit: geen probleem voor de installatie."
+Else
+  Version bsdsocket.library
+EndIF
+Set APfast `Avail FAST`
+IF NOT "$APfast" GT "1000000" VAL
+  Echo "    LET OP: minder dan 1 MB Fast RAM vrij: tekst werkt, kleurenafdrukken"
+  Echo "    waarschijnlijk niet (te weinig geheugen)."
+EndIF
+Echo "[1] OK (instellingenprogramma: $APSprefs)"
+RequestChoice >ENV:APSkeuze "A600AirPrint" "AmiAirPrint installeren?*N*NNieuw: DEVS:airprint.device, DEVS:Printers/AirPrint,*NSYS:Prefs/AmiAirPrint, ENVARC:AirPrint.prefs, Work:A600AirPrint*N*NBack-up van printer.prefs en controlesommen*Nin Work:AmiAirPrint-Backup." "Installeren" "Stoppen"
+IF NOT "$APSkeuze" EQ "1"
+  Echo "Gestopt, niets gewijzigd."
+  Quit 5
+EndIF
+Echo "[2] Back-up naar Work:AmiAirPrint-Backup"
+MakeDir Work:AmiAirPrint-Backup
+IF WARN
+  Echo "FOUT: kan Work:AmiAirPrint-Backup niet maken. Niets gewijzigd."
+  Quit 20
+EndIF
+Echo >Work:AmiAirPrint-Backup/LeesMij "Back-up van A600AirPrint-Installeer. Verwijderen zet dit terug."
+Echo >>Work:AmiAirPrint-Backup/LeesMij "Een bestand <naam>.nieuw betekent: bestond voor de installatie niet."
+Echo >>Work:AmiAirPrint-Backup/LeesMij "Beschermd.lst: controlesommen van bestanden die NIET mogen veranderen."
+; controlesommen van alles wat ongewijzigd moet blijven (Controle en Verwijderen vergelijken)
+C/CRCLijst Work:AmiAirPrint-Backup/Beschermd.lst MAAK S:#? DEVS:#?.device DEVS:Networks/#? DEVS:DOSDrivers/#? L:#? SYS:WBStartup/#? AmiTCP:#? AmiTCP:db/#?
+IF WARN
+  Skip fout
+EndIF
+IF EXISTS DEVS:airprint.device
+  Copy DEVS:airprint.device Work:AmiAirPrint-Backup/dev CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/dev.nieuw "DEVS:airprint.device"
+EndIF
+IF EXISTS DEVS:Printers/AirPrint
+  Copy DEVS:Printers/AirPrint Work:AmiAirPrint-Backup/drv CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/drv.nieuw "DEVS:Printers/AirPrint"
+EndIF
+IF EXISTS SYS:Prefs/AmiAirPrint
+  Copy SYS:Prefs/AmiAirPrint Work:AmiAirPrint-Backup/prefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/prefs.nieuw "SYS:Prefs/AmiAirPrint"
+EndIF
+IF EXISTS SYS:Prefs/AmiAirPrint.info
+  Copy SYS:Prefs/AmiAirPrint.info Work:AmiAirPrint-Backup/prefsinfo CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/prefsinfo.nieuw "SYS:Prefs/AmiAirPrint.info"
+EndIF
+IF EXISTS ENVARC:AirPrint.prefs
+  Copy ENVARC:AirPrint.prefs Work:AmiAirPrint-Backup/apprefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/apprefs.nieuw "ENVARC:AirPrint.prefs"
+EndIF
+IF EXISTS ENVARC:Sys/printer.prefs
+  Copy ENVARC:Sys/printer.prefs Work:AmiAirPrint-Backup/prtprefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/prtprefs.nieuw "ENVARC:Sys/printer.prefs"
+EndIF
+IF EXISTS ENVARC:Sys/printergfx.prefs
+  Copy ENVARC:Sys/printergfx.prefs Work:AmiAirPrint-Backup/gfxprefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/gfxprefs.nieuw "ENVARC:Sys/printergfx.prefs"
+EndIF
+Echo >Work:AmiAirPrint-Backup/werk.nieuw "Work:A600AirPrint"
+Echo "[2] OK"
+Echo "[3] Bestanden kopieren"
+Copy Bestanden/airprint.device DEVS:airprint.device QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AirPrint DEVS:Printers/AirPrint QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/$APSprefs SYS:Prefs/AmiAirPrint QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AmiAirPrint.info SYS:Prefs/AmiAirPrint.info QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AirPrint.prefs ENVARC:AirPrint.prefs QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AirPrint.prefs ENV:AirPrint.prefs QUIET
+MakeDir Work:A600AirPrint Work:A600AirPrint/C Work:A600AirPrint/Hulp Work:A600AirPrint/Docs Work:A600AirPrint/Verslag
+IF WARN
+  Skip fout
+EndIF
+Copy Controle Controle.info ControleerPrinter ControleerPrinter.info TestTekst TestTekst.info TestGrafiek TestGrafiek.info Verwijderen Verwijderen.info LeesMij LeesMij.info TestBeeld.iff Work:A600AirPrint CLONE QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy C/#? Work:A600AirPrint/C CLONE QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Hulp/Zoekwoord Hulp/Poortcheck Hulp/Poortmelding Work:A600AirPrint/Hulp CLONE QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Docs/#? Work:A600AirPrint/Docs CLONE QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Hulp/Lade.info Work:A600AirPrint.info QUIET
+IF WARN
+  Skip fout
+EndIF
+Echo "[3] OK"
+Echo "[4] Kopie controleren: alle nieuwe bestanden tegen hun controlesom"
+C/CRCLijst $APSdoel
+IF WARN
+  Skip fout
+EndIF
+Echo >Work:AmiAirPrint-Backup/Geinstalleerd "A600AirPrint 1.0: airprint.device + AirPrint 1.2-ps1, $APSprefs"
+Date >>Work:AmiAirPrint-Backup/Geinstalleerd
+Echo "[4] OK"
+Echo ""
+Echo "=== Geinstalleerd. Nu nog (zelf, eenmalig): ==="
+Echo " 1. SYS:Prefs/Printer: driver AirPrint, poort SERIEEL (Serial), Save."
+Echo "    Niet Parallel: daar zit de Plipbox op. AirPrint stuurt niets naar"
+Echo "    de seriele poort; de keuze is alleen verplicht."
+Echo " 2. Reboot, netwerk starten zoals altijd."
+Echo " 3. In Work:A600AirPrint: ControleerPrinter, dan TestTekst."
+RequestChoice >ENV:APSkeuze "A600AirPrint" "Geinstalleerd.*N*NPrefs/Printer nu openen?*N(driver AirPrint, poort Serial, Save)" "Openen" "Later"
+IF "$APSkeuze" EQ "1"
+  Run >NIL: SYS:Prefs/Printer
+EndIF
+Quit 0
+Lab fout
+Echo ""
+Echo "FOUT tijdens de installatie (schijf vol of schrijffout?)."
+Echo "Alles wordt nu teruggezet uit Work:AmiAirPrint-Backup..."
+Execute Verwijderen AUTO
+Echo "Installatie afgebroken. Controleer de melding hierboven."
+Quit 20

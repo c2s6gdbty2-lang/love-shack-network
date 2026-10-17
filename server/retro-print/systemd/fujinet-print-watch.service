@@ -1,0 +1,10 @@
+[Unit]
+Description=FujiNet (Atari) print job watcher
+After=network-online.target cups.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=retro
+TimeoutStartSec=120
+ExecStart=/opt/retro-print/fujinet/fujinet-print-watch.sh

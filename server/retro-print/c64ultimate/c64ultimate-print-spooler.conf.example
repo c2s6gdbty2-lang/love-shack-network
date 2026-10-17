@@ -1,0 +1,27 @@
+# Geport van macOS-configuratie (~/Library/Scripts/C64UltimatePrinter/c64ultimate-print-spooler.conf)
+# Zelfde Commodore 64 Ultimate, dus zelfde instellingen; alleen draait de spooler nu op de Pi.
+# IP van de Ultimate: 192.168.1.78
+# Ultimate schrijft printeruitvoer als printer-001.png in USB1 zelf.
+
+ULTIMATE_FTP_BASE="ftp://192.168.1.78/USB1"
+ULTIMATE_FTP_BASES="ftp://192.168.1.78/USB1 ftp://192.168.1.78/USB1/printer"
+
+# Brother printer, nu de CUPS-queue op de Pi zelf:
+PRINTER="Brother_MFC_L8390CDW_series"
+
+# Alleen Ultimate-printerbestanden oppakken, zodat gewone USB1-bestanden
+# niet per ongeluk als printjob worden gezien.
+REMOTE_PATTERNS="printer print paper c64print printout printerout printer-* print* paper* c64print* printout* printerout* *.png *.pdf *.txt *.prn *.raw *.seq"
+
+# Na succesvol printen lokaal archiveren en remote printbestand verwijderen.
+# Dit voorkomt dat de Ultimate blijft hangen op c64print-001.png.
+DELETE_AFTER_PRINT=1
+
+# Twee downloads moeten exact gelijk zijn voordat er geprint wordt.
+POLL_STABILITY_SECONDS=2
+
+CURL_MAX_TIME=30
+
+# Veiligheidsgrens: negeer oudere printer-*.png bestanden die al op USB1 stonden
+# voordat deze watcher op de echte Ultimate-output werd gezet.
+MIN_REMOTE_MTIME_EPOCH=1782160686

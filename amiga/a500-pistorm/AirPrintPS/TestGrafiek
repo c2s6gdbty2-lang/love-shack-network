@@ -1,0 +1,63 @@
+; $VER: TestGrafiek 1.0 (14.10.2026) AirPrintPS
+; Stap 2 van de printertest: een grafische afdruk via printer.device
+; (MultiView drukt het testbeeld TestBeeld.iff af via ARexx PRINT).
+FailAt 21
+Echo "AirPrintPS - TestGrafiek (1 pagina, kleurenbeeld)"
+Version >NIL: bsdsocket.library
+IF WARN
+  Echo "FOUT: het netwerk staat uit. Eerst StartWiFi."
+  Quit 20
+EndIF
+IF NOT EXISTS TestBeeld.iff
+  Echo "FOUT: start vanuit de AirPrintPS-map (TestBeeld.iff ontbreekt)."
+  Quit 20
+EndIF
+Search >NIL: ENV:Sys/printer.prefs AirPrint QUIET
+IF WARN
+  Echo "LET OP: in Prefs/Printer is (nog) niet AirPrint gekozen. Gestopt."
+  Quit 10
+EndIF
+RequestChoice >ENV:APSkeuze "TestGrafiek" "Het testbeeld afdrukken (1 pagina, kleur)?" "Afdrukken" "Stoppen"
+IF NOT $APSkeuze EQ 1
+  Quit 5
+EndIF
+IF NOT EXISTS SYS:Rexxc/RX
+  Echo "FOUT: SYS:Rexxc/RX ontbreekt."
+  Quit 20
+EndIF
+Status >NIL: COMMAND=SYS:System/RexxMast
+IF WARN
+  Run >NIL: SYS:System/RexxMast
+  Wait 2
+EndIF
+Run >NIL: SYS:Utilities/MultiView TestBeeld.iff PORTNAME APSVIEW
+Set n 0
+Lab w
+Wait 1
+SYS:Rexxc/RX >NIL: "IF SHOW('P','APSVIEW') THEN EXIT 0; EXIT 5"
+IF NOT WARN
+  Skip klaar
+EndIF
+Set n `Eval $n + 1`
+IF NOT $n GE 15 VAL
+  Skip w BACK
+EndIF
+Echo "FOUT: MultiView opende niet binnen 15 s."
+Quit 20
+Lab klaar
+Echo "MultiView drukt af..."
+SYS:Rexxc/RX "ADDRESS APSVIEW; PRINT; QUIT"
+; wachten tot MultiView echt weg is (printer.device is exclusief)
+Set n 0
+Lab q
+Wait 1
+SYS:Rexxc/RX >NIL: "IF SHOW('P','APSVIEW') THEN EXIT 5; EXIT 0"
+IF NOT WARN
+  Skip weg
+EndIF
+Set n `Eval $n + 1`
+IF NOT $n GE 30 VAL
+  Skip q BACK
+EndIF
+Lab weg
+Echo "OK: afdrukopdracht gegeven. Controleer de printer."

@@ -1,0 +1,9 @@
+[Unit]
+Description=Meatloaf (C64) print job watcher
+After=network-online.target cups.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=retro
+ExecStart=/opt/retro-print/meatloaf/meatloaf-print-watch.sh

@@ -1,0 +1,56 @@
+A600AirPrint 1.0 - printen vanaf de Amiga 600 rechtstreeks op de Brother
+=========================================================================
+
+WAT HET IS
+ Dezelfde AmiAirPrint 1.2-ps1 als op de A500 (AirPrintPS), byte-identiek:
+ Programma -> printer.device / PRT: -> AirPrint-driver -> airprint.device
+ -> AmiTCP 3.0b2 + Plipbox -> @@PRINTER_NAME@@ @@PRINTER_HOST@@ poort @@PRINTER_PORT@@ (IPP).
+ De Pi doet hier niet aan mee. Gewone Amiga-programma's drukken zonder
+ aanpassing af (MultiView, PrintFiles, Ed, SysInfo ...).
+
+HET ENIGE VERSCHIL MET DE A500: POORT SERIEEL
+ De Plipbox zit op de parallelle poort. Kies in Prefs/Printer daarom
+ poort SERIAL (niet Parallel). AirPrint stuurt NIETS naar de seriele
+ poort; printer.device wil alleen dat de gekozen poort te openen is.
+ Gevolg: tijdens het afdrukken mag geen ander programma de seriele poort
+ gebruiken (terminal, modem, MIDI, AUX:). Omgekeerd: zolang een afdruk
+ loopt, kan zo'n programma de poort niet openen.
+
+VOLGORDE (alles via dubbelklikken op deze diskette)
+ 0. Netwerk starten zoals altijd (Plipbox/AmiTCP; Retro: mag, hoeft niet).
+ 1. Controle            leest alleen; verslag in RAM:, kopie op de diskette
+                        als je dat kiest. Stuur het verslag voor je installeert.
+ 2. Installeer          maakt eerst Work:AmiAirPrint-Backup (+ controlesommen)
+ 3. SYS:Prefs/Printer   driver AirPrint, poort Serial, Save
+ 4. Reboot, netwerk starten
+ 5. Work:A600AirPrint:  ControleerPrinter  vraagt de Brother om zijn gegevens
+                        TestTekst          1 pagina tekst (10-30 s)
+                        TestGrafiek        1 kleurenpagina (10-11 minuten)
+ 6. Een echte toepassing, bv. SYS:Tools/PrintFiles of MultiView > Print.
+ Na de installatie is de diskette niet meer nodig.
+
+INSTELLINGENPROGRAMMA
+ SYS:Prefs/AmiAirPrint: printer-adres, kleur of grijs, enkel- of
+ dubbelzijdig, papier, schaal, "Query printer". Grijs is sneller.
+ Het (officiele) icoon heeft een vaste plaats rechts in de lade Prefs:
+ zie je het niet, scroll dan of kies Venster > Opruimen (Clean Up).
+ Pas op met "Testpage": dat drukt echt een pagina af.
+
+GEHEUGEN EN SNELHEID (emulator, 68000 7 MHz)
+ Tekst werkt ook zonder Fast RAM. Een kleurenpagina werd alleen met
+ Fast RAM afgedrukt (2 MB chip + 4 MB fast: OK; alleen chip: mislukt).
+ Een kleurenpagina rekent ongeveer 10-11 minuten; tekst 20-30 s.
+
+TERUG NAAR DE VORIGE TOESTAND
+ Verwijderen (op deze diskette of in Work:A600AirPrint) zet alles terug
+ uit Work:AmiAirPrint-Backup, ook de keuze in Prefs/Printer, en
+ controleert dat Startup-Sequence, DEVS:, L:, AmiTCP en WBStartup
+ ongewijzigd zijn. Daarna rebooten. Snelste alternatief: in Prefs/Printer
+ de vorige driver kiezen en Save.
+
+NIET GEWIJZIGD
+ Startup-Sequence, User-Startup, printer.device, parallel.device,
+ serial.device, DEVS:Networks, AmiTCP, Plipbox, RetroMount.
+
+BRON
+ AmiAirPrint (MIT-licentie) met de wijziging 1.2-ps1, zie Docs/.

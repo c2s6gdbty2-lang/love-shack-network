@@ -1,0 +1,11 @@
+[Unit]
+Description=Poll C64 Ultimate for print jobs every 30s
+
+[Timer]
+OnBootSec=15s
+OnUnitActiveSec=30s
+AccuracySec=2s
+Unit=c64ultimate-print-spooler.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,41 @@
+AirPrintPS 1.0 - printen vanaf de Amiga 500 (PiStorm) op de Brother
+====================================================================
+
+ROUTE
+
+ AmiAirPrint (rechtstreeks, IPP)
+    Programma -> printer.device / PRT: -> AirPrint-driver ->
+    airprint.device -> wifi (AmiTCP 3.0b2) -> @@PRINTER_NAME@@ @@PRINTER_HOST@@:@@PRINTER_PORT@@
+    Gewone Amiga-programma's drukken zonder aanpassing af.
+
+WAAROM EEN AANGEPASTE AmiAirPrint (1.2-ps1)?
+ Twee problemen met de Aminet-versie 1.2 op deze Amiga, beide in de
+ emulator aangetoond (AmiTCP 3.0b2, Workbench 3.1):
+ 1. AmiAirPrint opent bsdsocket.library versie 4; WiFiNet levert 3.28.
+    Gevolg: "Could not open bsdsocket.library V4+". Alle gebruikte
+    socketfuncties bestaan al in versie 3 -> versie 3 gevraagd.
+ 2. Onder OS 3.1 draait printer.device als exec-Task. airprint.device en
+    de driver lazen daar hun instellingen en spoolden naar T: via DOS;
+    DOS vanuit een Task blijft hangen (PRT: en grafiek bleven steken).
+    Nu: instellingen alleen in een Process lezen (anders de laatste
+    waarden), spool in het geheugen.
+ De twee instellingenprogramma's zijn de officiele bestanden met 1 byte
+ verschil (versie 4 -> 3). Bron: MIT-licentie, zie Docs/.
+
+VOLGORDE OP DE A500 (alles via dubbelklikken)
+ 0. Inventaris          leest alleen; resultaat in RAM:
+ 1. Installeer          maakt eerst Work:AmiAirPrint-Backup
+ 2. SYS:Prefs/Printer   driver AirPrint, poort Parallel, Save
+ 3. Reboot, StartWiFi
+ 4. ControleerPrinter   vraagt de Brother om zijn gegevens (drukt niet)
+ 5. TestTekst           1 pagina tekst
+ 6. TestGrafiek         1 pagina kleurenbeeld (MultiView)
+ 7. Een echte toepassing, bv. SYS:Tools/PrintFiles of MultiView > Print
+
+TERUG NAAR DE VORIGE TOESTAND
+ Verwijderen zet alles terug uit Work:AmiAirPrint-Backup (ook de keuze in
+ Prefs/Printer). Daarna rebooten.
+
+NIET GEWIJZIGD
+ Startup-Sequence, User-Startup, printer.device, parallel.device,
+ DEVS:Networks, WiFiNet, PlipNet, RetroMount.

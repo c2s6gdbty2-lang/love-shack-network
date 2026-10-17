@@ -1,0 +1,36 @@
+.KEY HOST,PAD,POORT
+.BRA {
+.KET }
+; $VER: ControleerPrinter 1.0 (14.10.2026) AirPrintPS
+; Vraagt de printer om zijn IPP-eigenschappen (Get-Printer-Attributes).
+; ALLEEN LEZEN: er wordt niets afgedrukt. Uitvoer: RAM:AirPrint-Probe.txt
+FailAt 21
+Echo "AirPrintPS - ControleerPrinter (alleen een vraag, geen afdruk)"
+Version >NIL: bsdsocket.library
+IF WARN
+  Echo "FOUT: het netwerk staat uit. Eerst StartWiFi."
+  Quit 20
+EndIF
+IF NOT EXISTS C/AirPrintProbe
+  Echo "FOUT: start vanuit de AirPrintPS-map."
+  Quit 20
+EndIF
+Stack 40000
+C/AirPrintProbe >RAM:AirPrint-Probe.txt {HOST$@@PRINTER_HOST@@} {PAD$@@PRINTER_PATH@@} {POORT$@@PRINTER_PORT@@}
+Search >NIL: RAM:AirPrint-Probe.txt "IPP status:     0x0000" QUIET
+IF WARN
+  Echo "FOUT: de printer gaf geen geldig IPP-antwoord:"
+  Type RAM:AirPrint-Probe.txt
+  Quit 20
+EndIF
+Echo "[1] OK: de printer antwoordt via IPP (IPP status 0x0000)."
+Search >NIL: RAM:AirPrint-Probe.txt "image/pwg-raster" QUIET
+IF WARN
+  Echo "[2] FOUT: de printer meldt geen PWG Raster (image/pwg-raster)."
+  Quit 20
+EndIF
+Echo "[2] OK: de printer accepteert PWG Raster (het formaat van AmiAirPrint)."
+Search RAM:AirPrint-Probe.txt "pwg-raster-document-" NONUM
+Search RAM:AirPrint-Probe.txt "printer-make-and-model" NONUM
+Search RAM:AirPrint-Probe.txt "printer-state " NONUM
+Echo "Volledige uitvoer: RAM:AirPrint-Probe.txt"

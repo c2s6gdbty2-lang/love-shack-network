@@ -1,0 +1,41 @@
+.KEY BESTAND/A
+.BRA {
+.KET }
+; $VER: Zoekwoord 1.0 (16.10.2026) A600AirPrint
+; Hulpscript van Controle: meldt WELKE woorden in een opstartbestand voorkomen,
+; zonder de inhoud te tonen (er kan een wachtwoord in staan). Alleen lezen.
+Set APzw ""
+Search >NIL: "{BESTAND}" plip QUIET
+IF NOT WARN
+  Set APzw "$APzw plip"
+EndIF
+Search >NIL: "{BESTAND}" AmiTCP QUIET
+IF NOT WARN
+  Set APzw "$APzw AmiTCP"
+EndIF
+Search >NIL: "{BESTAND}" smbfs QUIET
+IF NOT WARN
+  Set APzw "$APzw smbfs"
+EndIF
+Search >NIL: "{BESTAND}" Retro QUIET
+IF NOT WARN
+  Set APzw "$APzw Retro"
+EndIF
+Search >NIL: "{BESTAND}" netpar QUIET
+IF NOT WARN
+  Set APzw "$APzw netpar"
+EndIF
+Search >NIL: "{BESTAND}" V42 QUIET
+IF NOT WARN
+  Set APzw "$APzw V42"
+EndIF
+Search >NIL: "{BESTAND}" printer QUIET
+IF NOT WARN
+  Set APzw "$APzw printer"
+EndIF
+Search >NIL: "{BESTAND}" serial QUIET
+IF NOT WARN
+  Set APzw "$APzw serial"
+EndIF
+Echo >>$APr "{BESTAND}:$APzw"
+UnSet APzw

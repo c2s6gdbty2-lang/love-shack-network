@@ -1,0 +1,9 @@
+[Unit]
+Description=C64 Ultimate print job spooler
+After=network-online.target cups.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=retro
+ExecStart=/opt/retro-print/c64ultimate/c64ultimate-print-spooler.sh

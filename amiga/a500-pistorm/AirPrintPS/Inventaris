@@ -1,0 +1,78 @@
+; $VER: Inventaris 1.0 (14.10.2026) AirPrintPS
+; Leest de printer-, OS- en netwerkconfiguratie van deze Amiga uit.
+; ALLEEN LEZEN: schrijft uitsluitend RAM:AirPrint-Inventaris.txt.
+; Gebruikt bewust GEEN Info (raakt alle partities aan, ook GDH2:).
+FailAt 21
+Set AIf RAM:AirPrint-Inventaris.txt
+Echo "AirPrintPS - Inventaris (alleen lezen)"
+Echo >$AIf "AirPrintPS Inventaris 1.0"
+Date >>$AIf
+Echo >>$AIf "== Systeem"
+Version >>$AIf
+Version >>$AIf exec.library
+Version >>$AIf workbench.library
+Version >>$AIf dos.library
+Version >>$AIf intuition.library
+Version >>$AIf gadtools.library
+Echo >>$AIf "== Printer"
+Version >>$AIf DEVS:printer.device
+Version >>$AIf DEVS:parallel.device
+Version >>$AIf L:port-handler
+Assign >>$AIf PRINTERS: EXISTS
+Echo >>$AIf "-- DEVS:Printers"
+List >>$AIf DEVS:Printers PAT ~(#?.info) NOHEAD QUICK
+IF EXISTS DEVS:PrinterPorts
+  Echo >>$AIf "-- DEVS:PrinterPorts"
+  List >>$AIf DEVS:PrinterPorts NOHEAD QUICK
+EndIF
+Echo >>$AIf "-- printer.prefs (ENVARC: en ENV:)"
+IF EXISTS ENVARC:Sys/printer.prefs
+  Type >>$AIf ENVARC:Sys/printer.prefs HEX
+Else
+  Echo >>$AIf "ENVARC:Sys/printer.prefs bestaat niet (standaardinstelling)"
+EndIF
+IF EXISTS ENV:Sys/printer.prefs
+  Type >>$AIf ENV:Sys/printer.prefs HEX
+EndIF
+List >>$AIf ENVARC:Sys/print#? NOHEAD
+Echo >>$AIf "-- AmiAirPrint al aanwezig?"
+IF EXISTS DEVS:airprint.device
+  Version >>$AIf DEVS:airprint.device
+Else
+  Echo >>$AIf "DEVS:airprint.device: nee"
+EndIF
+IF EXISTS DEVS:Printers/AirPrint
+  Echo >>$AIf "DEVS:Printers/AirPrint: ja"
+EndIF
+IF EXISTS ENVARC:AirPrint.prefs
+  Type >>$AIf ENVARC:AirPrint.prefs
+EndIF
+IF EXISTS Work:AmiAirPrint-Backup
+  Echo >>$AIf "Work:AmiAirPrint-Backup bestaat (AirPrintPS is geinstalleerd)"
+EndIF
+Echo >>$AIf "== Netwerk"
+Version >>$AIf bsdsocket.library
+IF WARN
+  Echo >>$AIf "bsdsocket.library niet actief (StartWiFi niet gestart?)"
+EndIF
+IF EXISTS Work:WiFiNet/AmiTCP/WiFiNet.id
+  Type >>$AIf Work:WiFiNet/AmiTCP/WiFiNet.id
+EndIF
+IF EXISTS Work:WiFiNet/C/smbfs
+  Version >>$AIf Work:WiFiNet/C/smbfs
+EndIF
+IF EXISTS Work:WiFiNet/C/WiFiVraag
+  Echo >>$AIf "Work:WiFiNet/C/WiFiVraag: ja"
+EndIF
+IF EXISTS Work:PlipNet
+  Echo >>$AIf "Work:PlipNet: ja"
+EndIF
+Echo >>$AIf "== Processen"
+Status >>$AIf
+Echo >>$AIf "== Geheugen"
+Avail >>$AIf
+Echo >>$AIf "== Klaar"
+Type $AIf
+Echo ""
+Echo "Opgeslagen in RAM:AirPrint-Inventaris.txt. Fotografeer dit venster,"
+Echo "of zet het bestand op de Pi met NaarDePi (zie LeesMij)."

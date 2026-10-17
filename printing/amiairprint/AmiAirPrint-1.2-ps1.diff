@@ -1,0 +1,317 @@
+diff --git a/include/ami_airprint_version.h b/include/ami_airprint_version.h
+index fb0230e..258541b 100644
+--- a/include/ami_airprint_version.h
++++ b/include/ami_airprint_version.h
+@@ -11,9 +11,9 @@
+  */
+ #define AMIAIRPRINT_VERSION_MAJOR 1
+ #define AMIAIRPRINT_VERSION_MINOR 2
+-#define AMIAIRPRINT_VERSION_TEXT "1.2"
+-#define AMIAIRPRINT_VERSION_DATE "28.8.2026"
+-#define AMIAIRPRINT_VERSION_DATE_LONG "28 Aug 2026"
++#define AMIAIRPRINT_VERSION_TEXT "1.2-ps1"
++#define AMIAIRPRINT_VERSION_DATE "14.10.2026"
++#define AMIAIRPRINT_VERSION_DATE_LONG "14 Oct 2026"
+ 
+ #define AMIAIRPRINT_PREFS_VERSION_MAJOR AMIAIRPRINT_VERSION_MAJOR
+ #define AMIAIRPRINT_PREFS_VERSION_MINOR AMIAIRPRINT_VERSION_MINOR
+@@ -23,8 +23,8 @@
+ 
+ #define AMIAIRPRINT_CORE_VERSION_MAJOR 1
+ #define AMIAIRPRINT_CORE_VERSION_MINOR 2
+-#define AMIAIRPRINT_CORE_VERSION_TEXT "1.2"
+-#define AMIAIRPRINT_CORE_VERSION_DATE "28.8.2026"
+-#define AMIAIRPRINT_CORE_VERSION_DATE_LONG "28 Aug 2026"
++#define AMIAIRPRINT_CORE_VERSION_TEXT "1.2-ps1"
++#define AMIAIRPRINT_CORE_VERSION_DATE "14.10.2026"
++#define AMIAIRPRINT_CORE_VERSION_DATE_LONG "14 Oct 2026"
+ 
+ #endif
+diff --git a/src/airprint_device.c b/src/airprint_device.c
+index 04f1410..bf02514 100644
+--- a/src/airprint_device.c
++++ b/src/airprint_device.c
+@@ -312,7 +312,38 @@ static int apd_load_prefs_file(CONST_STRPTR path, struct APDPreferences *prefs)
+     return 1;
+ }
+ 
++/*
++ * AirPrintPS (A500 PiStorm): printer.device onder OS 3.1 roept dit device aan
++ * vanuit zijn eigen exec-TASK. DOS-aanroepen uit een Task blijven daar hangen,
++ * dus prefs worden alleen in een Process (OpenDevice, opener-context) van schijf
++ * gelezen en in een Task uit deze cache gehaald; de spool staat in het geheugen.
++ */
++static struct APDPreferences g_prefs_cache;
++static int g_prefs_cache_valid;
++
++static int apd_in_process(void)
++{
++    return FindTask(NULL)->tc_Node.ln_Type == NT_PROCESS;
++}
++
++static int apd_load_prefs_disk(struct APDPreferences *prefs);
++
+ static int apd_load_prefs(struct APDPreferences *prefs)
++{
++    if (apd_in_process()) {
++        int ok = apd_load_prefs_disk(prefs);
++        if (ok) {
++            g_prefs_cache = *prefs;
++            g_prefs_cache_valid = 1;
++        }
++        return ok;
++    }
++    if (!g_prefs_cache_valid) return 0;
++    *prefs = g_prefs_cache;
++    return 1;
++}
++
++static int apd_load_prefs_disk(struct APDPreferences *prefs)
+ {
+     int loaded;
+ 
+@@ -328,21 +359,29 @@ static int apd_load_prefs(struct APDPreferences *prefs)
+     return loaded && prefs->host[0] != '\0' && prefs->path[0] == '/';
+ }
+ 
+-static int apd_spool_begin(void)
+-{
+-    BPTR file;
++struct APDChunk {
++    struct APDChunk *next;
++    ULONG used;
++    UBYTE data[32768];
++};
++static struct APDChunk *g_spool_head;
++static struct APDChunk *g_spool_tail;
+ 
+-    DOSBase = (struct DosLibrary *)OpenLibrary((CONST_STRPTR)"dos.library", 39L);
+-    if (DOSBase == NULL) return 0;
+-    file = Open((CONST_STRPTR)APD_SPOOL_PATH, MODE_NEWFILE);
+-    if (file == 0) {
+-        CloseLibrary((struct Library *)DOSBase);
+-        DOSBase = NULL;
+-        return 0;
++static void apd_spool_free(void)
++{
++    struct APDChunk *c = g_spool_head;
++    while (c != NULL) {
++        struct APDChunk *n = c->next;
++        FreeMem(c, (ULONG)sizeof(*c));
++        c = n;
+     }
+-    Close(file);
+-    CloseLibrary((struct Library *)DOSBase);
+-    DOSBase = NULL;
++    g_spool_head = NULL;
++    g_spool_tail = NULL;
++}
++
++static int apd_spool_begin(void)
++{
++    apd_spool_free();
+     g_job_size = 0U;
+     g_last_stage = APDEV_STAGE_SPOOL;
+     return 1;
+@@ -350,42 +389,31 @@ static int apd_spool_begin(void)
+ 
+ static int apd_spool_append(const UBYTE *data, ULONG length)
+ {
+-    BPTR file;
+-    LONG wrote;
+-
+     if (data == NULL || length == 0U) return 0;
+-    DOSBase = (struct DosLibrary *)OpenLibrary((CONST_STRPTR)"dos.library", 39L);
+-    if (DOSBase == NULL) return 0;
+-
+-    file = Open((CONST_STRPTR)APD_SPOOL_PATH, MODE_READWRITE);
+-    if (file == 0) {
+-        CloseLibrary((struct Library *)DOSBase);
+-        DOSBase = NULL;
+-        return 0;
+-    }
+-    if (Seek(file, 0, OFFSET_END) == -1) {
+-        Close(file);
+-        CloseLibrary((struct Library *)DOSBase);
+-        DOSBase = NULL;
+-        return 0;
++    while (length != 0U) {
++        ULONG room, n;
++        if (g_spool_tail == NULL || g_spool_tail->used == (ULONG)sizeof(g_spool_tail->data)) {
++            struct APDChunk *c = (struct APDChunk *)AllocMem((ULONG)sizeof(*c), MEMF_ANY);
++            if (c == NULL) return 0;
++            c->next = NULL;
++            c->used = 0U;
++            if (g_spool_tail != NULL) g_spool_tail->next = c; else g_spool_head = c;
++            g_spool_tail = c;
++        }
++        room = (ULONG)sizeof(g_spool_tail->data) - g_spool_tail->used;
++        n = length < room ? length : room;
++        CopyMem((APTR)data, g_spool_tail->data + g_spool_tail->used, n);
++        g_spool_tail->used += n;
++        data += n;
++        length -= n;
++        g_job_size += n;
+     }
+-    wrote = Write(file, (APTR)data, (LONG)length);
+-    Close(file);
+-    CloseLibrary((struct Library *)DOSBase);
+-    DOSBase = NULL;
+-    if (wrote != (LONG)length) return 0;
+-    g_job_size += length;
+     return 1;
+ }
+ 
+ static void apd_spool_delete(void)
+ {
+-    DOSBase = (struct DosLibrary *)OpenLibrary((CONST_STRPTR)"dos.library", 39L);
+-    if (DOSBase != NULL) {
+-        DeleteFile((CONST_STRPTR)APD_SPOOL_PATH);
+-        CloseLibrary((struct Library *)DOSBase);
+-        DOSBase = NULL;
+-    }
++    apd_spool_free();
+     g_job_active = FALSE;
+     g_job_size = 0U;
+     g_job_format = 0U;
+@@ -689,40 +717,11 @@ static int apd_build_ipp(const struct APDPreferences *prefs,
+ 
+ static int apd_send_spool_file(int sock, UBYTE *buffer, ULONG capacity)
+ {
+-    BPTR file;
+-    LONG got;
+-
+-    if (buffer == NULL || capacity == 0U) return 0;
+-
+-    DOSBase = (struct DosLibrary *)OpenLibrary((CONST_STRPTR)"dos.library", 39L);
+-    if (DOSBase == NULL) return 0;
+-    file = Open((CONST_STRPTR)APD_SPOOL_PATH, MODE_OLDFILE);
+-    if (file == 0) {
+-        CloseLibrary((struct Library *)DOSBase);
+-        DOSBase = NULL;
+-        return 0;
+-    }
+-
+-    for (;;) {
+-        got = Read(file, buffer, (LONG)capacity);
+-        if (got < 0) {
+-            Close(file);
+-            CloseLibrary((struct Library *)DOSBase);
+-            DOSBase = NULL;
+-            return 0;
+-        }
+-        if (got == 0) break;
+-        if (!apd_send_all(sock, buffer, (ULONG)got)) {
+-            Close(file);
+-            CloseLibrary((struct Library *)DOSBase);
+-            DOSBase = NULL;
+-            return 0;
+-        }
+-    }
+-
+-    Close(file);
+-    CloseLibrary((struct Library *)DOSBase);
+-    DOSBase = NULL;
++    struct APDChunk *c;
++    (void)buffer;
++    (void)capacity;
++    for (c = g_spool_head; c != NULL; c = c->next)
++        if (c->used != 0U && !apd_send_all(sock, c->data, c->used)) return 0;
+     return 1;
+ }
+ 
+@@ -837,7 +836,7 @@ static int apd_submit_job(void)
+                        workspace->uri, (ULONG)sizeof(workspace->uri),
+                        &ipp_len)) goto cleanup;
+ 
+-    SocketBase = (struct Library *)OpenLibrary((CONST_STRPTR)"bsdsocket.library", 4L);
++    SocketBase = (struct Library *)OpenLibrary((CONST_STRPTR)"bsdsocket.library", 3L);
+     if (SocketBase == NULL) goto cleanup;
+ 
+     apd_memzero(&address, (ULONG)sizeof(address));
+@@ -1075,6 +1074,10 @@ static void do_open(struct Library *dev, struct IORequest *ioreq, ULONG unitnum,
+     ioreq->io_Error = IOERR_OPENFAIL;
+     ioreq->io_Message.mn_Node.ln_Type = NT_REPLYMSG;
+     if (unitnum != 0U) return;
++    if (apd_in_process()) {
++        struct APDPreferences tmp;
++        (void)apd_load_prefs(&tmp);
++    }
+     dev->lib_OpenCnt++;
+     dev->lib_Flags &= (UBYTE)~LIBF_DELEXP;
+     ioreq->io_Error = 0;
+diff --git a/src/airprint_http_amiga.c b/src/airprint_http_amiga.c
+index 13ae26d..fafc173 100644
+--- a/src/airprint_http_amiga.c
++++ b/src/airprint_http_amiga.c
+@@ -80,9 +80,9 @@ int ap_http_open(void)
+         return 1;
+     }
+ 
+-    SocketBase = (struct Library *)OpenLibrary((CONST_STRPTR)"bsdsocket.library", 4L);
++    SocketBase = (struct Library *)OpenLibrary((CONST_STRPTR)"bsdsocket.library", 3L);
+     if (SocketBase == NULL) {
+-        ap_set_error("Could not open bsdsocket.library V4+");
++        ap_set_error("Could not open bsdsocket.library V3+");
+         return 0;
+     }
+ 
+diff --git a/src/airprint_printer.c b/src/airprint_printer.c
+index bab5a19..d2a1f7f 100644
+--- a/src/airprint_printer.c
++++ b/src/airprint_printer.c
+@@ -824,6 +824,12 @@ static void ap_scan_prefs_file(CONST_STRPTR path, int *landscape, int *monochrom
+     Close(file);
+ }
+ 
++static struct {
++    int valid, landscape, monochrome, sgray_supported, center_on_paper;
++    UWORD scale_percent, engine, duplex_mode, sheet_back, output_dpi;
++    char media[AP_MEDIA_KEY_LEN];
++} g_page_prefs_cache;
++
+ static void ap_load_page_prefs(int *landscape, int *monochrome, int *sgray_supported,
+                                UWORD *scale_percent, int *center_on_paper,
+                                UWORD *engine, UWORD *duplex_mode,
+@@ -847,6 +853,23 @@ static void ap_load_page_prefs(int *landscape, int *monochrome, int *sgray_suppo
+     ap_copy_string(media, media_capacity, AP_DEFAULT_MEDIA);
+ 
+     if (SysBase == NULL) return;
++    /* AirPrintPS: onder OS 3.1 draait de Render-callback in de exec-TASK van
++     * printer.device; DOS-aanroepen blijven daar hangen. Alleen in een Process
++     * (Open van printer.device) van schijf lezen; anders de laatste waarden. */
++    if (FindTask(NULL)->tc_Node.ln_Type != NT_PROCESS) {
++        if (!g_page_prefs_cache.valid) return;
++        *landscape = g_page_prefs_cache.landscape;
++        *monochrome = g_page_prefs_cache.monochrome;
++        *sgray_supported = g_page_prefs_cache.sgray_supported;
++        *scale_percent = g_page_prefs_cache.scale_percent;
++        *center_on_paper = g_page_prefs_cache.center_on_paper;
++        *engine = g_page_prefs_cache.engine;
++        *duplex_mode = g_page_prefs_cache.duplex_mode;
++        *sheet_back = g_page_prefs_cache.sheet_back;
++        *output_dpi = g_page_prefs_cache.output_dpi;
++        ap_copy_string(media, media_capacity, g_page_prefs_cache.media);
++        return;
++    }
+     DOSBase = (struct DosLibrary *)OpenLibrary((CONST_STRPTR)"dos.library", 39L);
+     if (DOSBase == NULL) return;
+ 
+@@ -861,6 +884,17 @@ static void ap_load_page_prefs(int *landscape, int *monochrome, int *sgray_suppo
+ 
+     CloseLibrary((struct Library *)DOSBase);
+     DOSBase = NULL;
++    g_page_prefs_cache.landscape = *landscape;
++    g_page_prefs_cache.monochrome = *monochrome;
++    g_page_prefs_cache.sgray_supported = *sgray_supported;
++    g_page_prefs_cache.scale_percent = *scale_percent;
++    g_page_prefs_cache.center_on_paper = *center_on_paper;
++    g_page_prefs_cache.engine = *engine;
++    g_page_prefs_cache.duplex_mode = *duplex_mode;
++    g_page_prefs_cache.sheet_back = *sheet_back;
++    g_page_prefs_cache.output_dpi = *output_dpi;
++    ap_copy_string(g_page_prefs_cache.media, (ULONG)sizeof(g_page_prefs_cache.media), media);
++    g_page_prefs_cache.valid = 1;
+ }
+ 
+ static void ap_apply_page_prefs(void)

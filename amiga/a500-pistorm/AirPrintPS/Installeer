@@ -1,0 +1,147 @@
+; $VER: Installeer 1.0 (14.10.2026) AirPrintPS
+; Installeert AmiAirPrint 1.2-ps1 (AmiAirPrint 1.2 aangepast voor AmiTCP 3.0b2 =
+; bsdsocket.library V3 en voor printer.device als exec-Task onder OS 3.1).
+; Wijzigt ALLEEN:
+;   DEVS:airprint.device            (nieuw)
+;   DEVS:Printers/AirPrint          (nieuw, officieel en ongewijzigd)
+;   SYS:Prefs/AmiAirPrint + .info   (nieuw)
+;   ENVARC:AirPrint.prefs, ENV:AirPrint.prefs (nieuw: @@PRINTER_NAME@@ @@PRINTER_HOST@@)
+; Bestaat een van deze al, dan wordt hij eerst bewaard.
+; ENVARC:Sys/printer.prefs wordt alleen BEWAARD (de keuze van de driver doet
+; de gebruiker zelf in Prefs/Printer). Back-up: Work:AmiAirPrint-Backup.
+; NIET gewijzigd: Startup-Sequence, User-Startup, printer.device,
+; parallel.device, DEVS:Networks, WiFiNet, PlipNet, RetroMount.
+FailAt 21
+Echo "AirPrintPS - AmiAirPrint installeren"
+Echo ""
+IF NOT EXISTS Bestanden/airprint.device
+  Echo "FOUT: start dit vanuit de AirPrintPS-map (dubbelklik het icoon,"
+  Echo "      of in een Shell eerst: CD AirPrintPS:)"
+  Quit 20
+EndIF
+Echo "[1] Controles"
+Version >NIL: exec.library 39
+IF WARN
+  Echo "FOUT: AmigaOS 3.0 of nieuwer is nodig."
+  Quit 20
+EndIF
+IF NOT EXISTS DEVS:printer.device
+  Echo "FOUT: DEVS:printer.device ontbreekt."
+  Quit 20
+EndIF
+IF NOT EXISTS DEVS:Printers
+  Echo "FOUT: de lade DEVS:Printers ontbreekt."
+  Quit 20
+EndIF
+IF NOT EXISTS SYS:Prefs
+  Echo "FOUT: de lade SYS:Prefs ontbreekt."
+  Quit 20
+EndIF
+Assign >NIL: Work: EXISTS
+IF WARN
+  Echo "FOUT: Work: ontbreekt (nodig voor de back-up)."
+  Quit 20
+EndIF
+IF EXISTS Work:AmiAirPrint-Backup
+  Echo "GESTOPT: Work:AmiAirPrint-Backup bestaat al: AirPrintPS is al"
+  Echo "         geinstalleerd. Eerst Verwijderen, dan opnieuw installeren."
+  Quit 10
+EndIF
+Set APSprefs AmiAirPrintPrefsClassic
+Version >NIL: workbench.library 47
+IF NOT WARN
+  Set APSprefs AmiAirPrintPrefs
+EndIF
+Version >NIL: bsdsocket.library
+IF WARN
+  Echo "    Netwerk staat uit: geen probleem voor de installatie."
+Else
+  Version bsdsocket.library
+EndIF
+Echo "[1] OK (instellingenprogramma: $APSprefs)"
+RequestChoice >ENV:APSkeuze "AirPrintPS" "AmiAirPrint installeren?*N*NNieuw: DEVS:airprint.device, DEVS:Printers/AirPrint,*NSYS:Prefs/AmiAirPrint, ENVARC:AirPrint.prefs*N*NBack-up van bestaande bestanden en printer.prefs*Nin Work:AmiAirPrint-Backup." "Installeren" "Stoppen"
+IF NOT $APSkeuze EQ 1
+  Echo "Gestopt, niets gewijzigd."
+  Quit 5
+EndIF
+Echo "[2] Back-up naar Work:AmiAirPrint-Backup"
+MakeDir Work:AmiAirPrint-Backup
+IF WARN
+  Echo "FOUT: kan Work:AmiAirPrint-Backup niet maken. Niets gewijzigd."
+  Quit 20
+EndIF
+Echo >Work:AmiAirPrint-Backup/LeesMij "Back-up van AirPrintPS-Installeer. Verwijderen zet dit terug."
+Echo >>Work:AmiAirPrint-Backup/LeesMij "Een bestand <naam>.nieuw betekent: bestond voor de installatie niet."
+; dev = DEVS:airprint.device
+IF EXISTS DEVS:airprint.device
+  Copy DEVS:airprint.device Work:AmiAirPrint-Backup/dev CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/dev.nieuw "DEVS:airprint.device"
+EndIF
+IF EXISTS DEVS:Printers/AirPrint
+  Copy DEVS:Printers/AirPrint Work:AmiAirPrint-Backup/drv CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/drv.nieuw "DEVS:Printers/AirPrint"
+EndIF
+IF EXISTS SYS:Prefs/AmiAirPrint
+  Copy SYS:Prefs/AmiAirPrint Work:AmiAirPrint-Backup/prefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/prefs.nieuw "SYS:Prefs/AmiAirPrint"
+EndIF
+IF EXISTS SYS:Prefs/AmiAirPrint.info
+  Copy SYS:Prefs/AmiAirPrint.info Work:AmiAirPrint-Backup/prefsinfo CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/prefsinfo.nieuw "SYS:Prefs/AmiAirPrint.info"
+EndIF
+IF EXISTS ENVARC:AirPrint.prefs
+  Copy ENVARC:AirPrint.prefs Work:AmiAirPrint-Backup/apprefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/apprefs.nieuw "ENVARC:AirPrint.prefs"
+EndIF
+IF EXISTS ENVARC:Sys/printer.prefs
+  Copy ENVARC:Sys/printer.prefs Work:AmiAirPrint-Backup/prtprefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/prtprefs.nieuw "ENVARC:Sys/printer.prefs"
+EndIF
+IF EXISTS ENVARC:Sys/printergfx.prefs
+  Copy ENVARC:Sys/printergfx.prefs Work:AmiAirPrint-Backup/gfxprefs CLONE QUIET
+Else
+  Echo >Work:AmiAirPrint-Backup/gfxprefs.nieuw "ENVARC:Sys/printergfx.prefs"
+EndIF
+Echo "[2] OK"
+Echo "[3] Bestanden kopieren"
+Copy Bestanden/airprint.device DEVS:airprint.device QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AirPrint DEVS:Printers/AirPrint QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/$APSprefs SYS:Prefs/AmiAirPrint QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AmiAirPrint.info SYS:Prefs/AmiAirPrint.info QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AirPrint.prefs ENVARC:AirPrint.prefs QUIET
+IF WARN
+  Skip fout
+EndIF
+Copy Bestanden/AirPrint.prefs ENV:AirPrint.prefs QUIET
+Echo >Work:AmiAirPrint-Backup/Geinstalleerd "AirPrintPS 1.0: airprint.device + AirPrint 1.2-ps1, $APSprefs (1.2, 1 byte)"
+Echo "[3] OK"
+Echo ""
+Echo "=== Geinstalleerd. Nu nog (zelf, eenmalig): ==="
+Echo " 1. Open SYS:Prefs/Printer. Kies driver AirPrint, poort Parallel"
+Echo "    (alleen een verplichte keuze; AirPrint gebruikt de poort niet). Save."
+Echo " 2. Reboot."
+Echo " 3. StartWiFi, daarna ControleerPrinter en pas dan TestTekst."
+Quit 0
+Lab fout
+Echo ""
+Echo "FOUT bij het kopieren. Voer nu Verwijderen uit; dat zet alles terug"
+Echo "vanuit Work:AmiAirPrint-Backup."
+Quit 20

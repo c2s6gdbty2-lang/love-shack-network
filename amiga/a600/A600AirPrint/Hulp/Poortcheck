@@ -1,0 +1,30 @@
+; $VER: Poortcheck 1.0 (16.10.2026) A600AirPrint
+; Hulpscript van TestTekst en TestGrafiek. Zet APpc op:
+;   ok       driver AirPrint, poort Serieel, seriele poort vrij
+;   geen     in Prefs/Printer is (nog) niet AirPrint gekozen
+;   parallel poort Parallel gekozen (die is bezet door de Plipbox)
+;   bezet    de seriele poort is nu in gebruik door een ander programma
+; Alleen lezen; SER: wordt alleen geopend en gesloten (0 bytes).
+Set APpc ok
+IF NOT EXISTS ENV:Sys/printer.prefs
+  Set APpc geen
+Else
+  Search >NIL: ENV:Sys/printer.prefs AirPrint QUIET
+  IF WARN
+    Set APpc geen
+  Else
+    Type >T:APp-hex ENV:Sys/printer.prefs HEX
+    Search >NIL: T:APp-hex "0050: 01" QUIET
+    IF WARN
+      Set APpc parallel
+    Else
+      Echo "Seriele poort controleren (een melding 'unable to open redirection"
+      Echo "file' betekent: bezet door een ander programma)."
+      Echo "" NOLINE >SER:
+      IF WARN
+        Set APpc bezet
+      EndIF
+    EndIF
+    Delete >NIL: T:APp-hex QUIET
+  EndIF
+EndIF

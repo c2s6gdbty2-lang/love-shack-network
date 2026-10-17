@@ -1,0 +1,5 @@
+# Configuratie voor de FujiNet (Atari) print-watcher.
+# mDNS (fujinet.local) is bij dit apparaat wisselvallig gebleken; vast IP-adres gebruiken.
+FUJINET_HOST="192.168.1.60"
+PRINTER="Brother_MFC_L8390CDW_series"
+CURL_MAX_TIME=20

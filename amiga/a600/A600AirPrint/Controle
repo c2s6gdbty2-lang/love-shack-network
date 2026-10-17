@@ -1,0 +1,283 @@
+; $VER: Controle 1.0 (16.10.2026) A600AirPrint
+; Leest de printer-, OS-, geheugen- en netwerkconfiguratie van deze A600 uit.
+; ALLEEN LEZEN: wijzigt niets op de A600. Schrijft uitsluitend:
+;   RAM:A600AirPrint-Controle.txt  (verslag)
+;   RAM:A600AirPrint-CRC.lst       (controlesommen van S:, DEVS:, L:, AmiTCP:, WBStartup)
+; en, alleen als je daarom vraagt, een kopie van beide op deze installatiediskette.
+; Toont nooit de inhoud van S:-scripts (daar kan het Samba-wachtwoord in staan).
+; Opent SER: en PAR: een ogenblik zonder iets te sturen (0 bytes), om te zien of de
+; poorten vrij zijn; dat doet printer.device bij het afdrukken ook.
+FailAt 21
+Set APr RAM:A600AirPrint-Controle.txt
+Set APok 1
+Echo "A600AirPrint - Controle (alleen lezen)"
+Echo ""
+Echo >$APr "A600AirPrint Controle 1.0"
+Date >>$APr
+IF NOT EXISTS C/CRCLijst
+  Echo "FOUT: start dit vanaf de A600AirPrint-diskette (dubbelklik het icoon)."
+  Quit 20
+EndIF
+Echo >>$APr "== Systeem"
+Version >>$APr
+Version >>$APr exec.library
+Version >>$APr workbench.library
+Version >>$APr dos.library
+Version >>$APr intuition.library
+Version >>$APr gadtools.library
+Version >>$APr bsdsocket.library
+CPU >>$APr
+Echo >>$APr "== Geheugen"
+Avail >>$APr
+Set APfast `Avail FAST`
+Echo >>$APr "Fast RAM vrij: $APfast"
+Echo >>$APr "== Printer"
+Version >>$APr DEVS:printer.device
+Version >>$APr DEVS:parallel.device
+Version >>$APr DEVS:serial.device
+Version >>$APr L:port-handler
+Assign >>$APr PRINTERS: EXISTS
+Echo >>$APr "-- DEVS: (bestanden)"
+List >>$APr DEVS: FILES NOHEAD QUICK
+Echo >>$APr "-- DEVS:Printers"
+List >>$APr DEVS:Printers PAT ~(#?.info) NOHEAD QUICK
+Echo >>$APr "-- Resten van V42Printer / NetPar?"
+Set APv42 0
+IF EXISTS DEVS:PrinterPorts
+  Echo >>$APr "DEVS:PrinterPorts: JA"
+  List >>$APr DEVS:PrinterPorts NOHEAD QUICK
+  Set APv42 1
+EndIF
+IF EXISTS DEVS:netpar.device
+  Echo >>$APr "DEVS:netpar.device: JA"
+  Set APv42 1
+EndIF
+IF EXISTS DEVS:NetParSpool
+  Echo >>$APr "DEVS:NetParSpool: JA"
+  Set APv42 1
+EndIF
+IF EXISTS L:printer-handler
+  Echo >>$APr "L:printer-handler: JA"
+  Set APv42 1
+EndIF
+Version >NIL: DEVS:printer.device 42
+IF NOT WARN
+  Echo >>$APr "printer.device is versie 42 of hoger (niet die van OS 3.1)"
+  Set APv42 1
+EndIF
+Echo >>$APr "V42Printer/NetPar-rest gevonden (1=ja): $APv42"
+Echo >>$APr "-- printer.prefs"
+IF EXISTS ENVARC:Sys/printer.prefs
+  Type >>$APr ENVARC:Sys/printer.prefs HEX
+Else
+  Echo >>$APr "ENVARC:Sys/printer.prefs bestaat niet (standaardinstelling)"
+EndIF
+Set APdrv "?"
+Set APpoort "?"
+IF EXISTS ENV:Sys/printer.prefs
+  Type >T:APc-hex ENV:Sys/printer.prefs HEX
+  Search >NIL: ENV:Sys/printer.prefs AirPrint QUIET
+  IF NOT WARN
+    Set APdrv AirPrint
+  Else
+    Set APdrv "niet AirPrint"
+  EndIF
+  Search >NIL: T:APc-hex "0050: 00" QUIET
+  IF NOT WARN
+    Set APpoort Parallel
+  EndIF
+  Search >NIL: T:APc-hex "0050: 01" QUIET
+  IF NOT WARN
+    Set APpoort Serieel
+  EndIF
+  Delete >NIL: T:APc-hex QUIET
+Else
+  Set APdrv "standaard (geen printer.prefs)"
+  Set APpoort "standaard (Parallel)"
+EndIF
+Echo >>$APr "Huidige keuze: driver $APdrv, poort $APpoort"
+List >>$APr ENVARC:Sys/print#? NOHEAD
+Echo >>$APr "-- AmiAirPrint al aanwezig?"
+Set APinst 0
+IF EXISTS DEVS:airprint.device
+  Version >>$APr DEVS:airprint.device
+  Set APinst 1
+EndIF
+IF EXISTS DEVS:Printers/AirPrint
+  Echo >>$APr "DEVS:Printers/AirPrint: ja"
+  Set APinst 1
+EndIF
+IF EXISTS SYS:Prefs/AmiAirPrint
+  Echo >>$APr "SYS:Prefs/AmiAirPrint: ja"
+  Set APinst 1
+EndIF
+IF EXISTS ENVARC:AirPrint.prefs
+  Type >>$APr ENVARC:AirPrint.prefs
+  Set APinst 1
+EndIF
+Echo >>$APr "== Poorten (0 bytes verstuurd)"
+Echo "Poorten testen. Een melding 'unable to open redirection file' betekent:"
+Echo "poort bezet. Voor de parallelle poort is dat normaal (Plipbox)."
+Echo "" NOLINE >SER:
+IF WARN
+  Set APser bezet
+Else
+  Set APser vrij
+EndIF
+Echo "" NOLINE >PAR:
+IF WARN
+  Set APpar "bezet (verwacht: Plipbox)"
+Else
+  Set APpar vrij
+EndIF
+Echo >>$APr "Seriele poort (SER:): $APser"
+Echo >>$APr "Parallelle poort (PAR:): $APpar"
+Echo >>$APr "== Netwerk"
+Set APnet uit
+Version >NIL: bsdsocket.library
+IF NOT WARN
+  Set APnet aan
+EndIF
+Echo >>$APr "bsdsocket.library: $APnet"
+Assign >>$APr
+Echo >>$APr "-- DEVS:Networks"
+List >>$APr DEVS:Networks NOHEAD QUICK
+Assign >NIL: AmiTCP: EXISTS
+IF NOT WARN
+  Version >>$APr AmiTCP:AmiTCP
+  IF EXISTS AmiTCP:db/interfaces
+    Echo >>$APr "-- AmiTCP:db/interfaces (regels met plip)"
+    Search >>$APr AmiTCP:db/interfaces plip NONUM
+  EndIF
+  IF EXISTS AmiTCP:bin/ifconfig
+    IF "$APnet" EQ "aan"
+      Echo >>$APr "-- ifconfig plip0 (alleen tonen)"
+      AmiTCP:bin/ifconfig >>$APr plip0
+    EndIF
+  EndIF
+EndIF
+Echo >>$APr "-- Opstartbestanden: komen deze woorden erin voor? (inhoud wordt niet getoond)"
+List >T:APc-zoek S: FILES PAT ~(#?.info) LFORMAT "Execute Hulp/Zoekwoord *"S:%s*""
+IF EXISTS T:APc-zoek
+  Execute T:APc-zoek
+  Delete >NIL: T:APc-zoek QUIET
+EndIF
+Echo >>$APr "-- S: (namen)"
+List >>$APr S: NOHEAD QUICK
+Echo >>$APr "-- SYS:WBStartup (namen)"
+List >>$APr SYS:WBStartup NOHEAD QUICK
+Echo >>$APr "-- RetroMount"
+Assign >NIL: Retro: EXISTS
+IF WARN
+  Echo >>$APr "Retro: is niet gemount"
+  Set APretro "niet gemount"
+Else
+  Echo >>$APr "Retro: is gemount"
+  Set APretro gemount
+EndIF
+IF EXISTS ENV:smbfs-process
+  List >>$APr ENV:smbfs-process NOHEAD QUICK
+EndIF
+Echo >>$APr "== Processen"
+Status >>$APr
+Echo >>$APr "== Installatielocatie"
+Assign >NIL: Work: EXISTS
+IF WARN
+  Echo >>$APr "Work: bestaat NIET"
+  Set APwork ontbreekt
+Else
+  C/CRCLijst >>$APr VRIJ Work: MIN 200
+  IF WARN
+    Set APwork "te weinig ruimte of niet beschrijfbaar (nodig 200 KB)"
+    Set APok 0
+  Else
+    Set APwork "aanwezig, beschrijfbaar, genoeg ruimte"
+  EndIF
+  IF EXISTS Work:AmiAirPrint-Backup
+    Echo >>$APr "Work:AmiAirPrint-Backup bestaat (A600AirPrint is geinstalleerd)"
+    Set APinst 1
+  EndIF
+  IF EXISTS Work:A600AirPrint
+    Echo >>$APr "Work:A600AirPrint bestaat"
+  EndIF
+EndIF
+C/CRCLijst >>$APr VRIJ SYS: MIN 300
+IF WARN
+  Set APsys "te weinig ruimte of niet beschrijfbaar (nodig 300 KB)"
+  Set APok 0
+Else
+  Set APsys "beschrijfbaar, genoeg ruimte"
+EndIF
+Echo >>$APr "== Controlesommen (alleen lezen)"
+C/CRCLijst >>$APr RAM:A600AirPrint-CRC.lst MAAK S:#? DEVS:#?.device DEVS:Networks/#? DEVS:DOSDrivers/#? L:#? SYS:WBStartup/#? AmiTCP:#? AmiTCP:db/#?
+IF EXISTS Work:AmiAirPrint-Backup/Beschermd.lst
+  Echo >>$APr "-- vergelijking met de lijst van voor de installatie"
+  C/CRCLijst >>$APr Work:AmiAirPrint-Backup/Beschermd.lst
+  IF WARN
+    Set APcrc "AFWIJKEND (zie verslag)"
+  Else
+    Set APcrc "alles ongewijzigd"
+  EndIF
+Else
+  Set APcrc "nog geen installatie"
+EndIF
+Echo >>$APr "== Klaar"
+; ---- samenvatting op het scherm
+Echo "Kickstart/Workbench:"
+Version
+Version DEVS:printer.device
+Echo "Fast RAM vrij      : $APfast"
+Echo "Printerkeuze nu    : driver $APdrv, poort $APpoort"
+Echo "Seriele poort      : $APser"
+Echo "Parallelle poort   : $APpar"
+Echo "Netwerk            : $APnet"
+Echo "Retro:             : $APretro"
+Echo "Work:              : $APwork"
+Echo "SYS:               : $APsys"
+Echo "Na installatie     : $APcrc"
+Echo ""
+IF "$APv42" EQ "1" VAL
+  Echo "LET OP: resten van V42Printer/NetPar of een ander printer.device gevonden."
+  Echo "        Niet installeren; stuur eerst dit verslag."
+  Set APok 0
+EndIF
+IF "$APwork" EQ "ontbreekt"
+  Echo "LET OP: Work: ontbreekt (nodig voor de back-up)."
+  Set APok 0
+EndIF
+IF "$APnet" EQ "uit"
+  Echo "LET OP: het netwerk staat uit. Start eerst de Plipbox zoals altijd en"
+  Echo "        doe daarna Controle opnieuw (voor ifconfig en bsdsocket)."
+EndIF
+IF "$APser" EQ "bezet"
+  Echo "LET OP: de seriele poort is nu bezet door een ander programma. Tijdens"
+  Echo "        het afdrukken moet hij vrij zijn (zie LeesMij)."
+EndIF
+IF NOT "$APfast" GT "1000000" VAL
+  Echo "LET OP: minder dan 1 MB Fast RAM vrij: waarschijnlijk alleen tekst."
+EndIF
+IF "$APinst" EQ "1" VAL
+  Echo "INFO: AmiAirPrint-bestanden zijn al aanwezig (zie verslag)."
+EndIF
+IF "$APok" EQ "1" VAL
+  IF "$APinst" EQ "1" VAL
+    Echo "Geen problemen gevonden."
+  Else
+    Echo "Geen bezwaren gevonden voor de installatie."
+  EndIF
+EndIF
+Echo ""
+Echo "Volledig verslag: RAM:A600AirPrint-Controle.txt"
+RequestChoice >ENV:APkeuze "A600AirPrint - Controle" "Verslag ook in de lade Verslag bewaren?*N(op de diskette, of in Work:A600AirPrint;*Nverder verandert er niets)" "Bewaren" "Niet bewaren"
+IF "$APkeuze" EQ "1"
+  Copy RAM:A600AirPrint-Controle.txt Verslag/ QUIET
+  IF WARN
+    Echo "Kon niet schrijven (diskette schrijfbeveiligd?). Het verslag staat in RAM:."
+  Else
+    Copy RAM:A600AirPrint-CRC.lst Verslag/ QUIET
+    Echo "Bewaard in de lade Verslag."
+  EndIF
+EndIF
+UnSet APok
+UnSet APv42
+UnSet APinst

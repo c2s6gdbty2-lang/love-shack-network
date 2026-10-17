@@ -1,0 +1,89 @@
+; $VER: Verwijderen 1.0 (14.10.2026) AirPrintPS
+; Zet de toestand van voor AirPrintPS-Installeer terug uit Work:AmiAirPrint-Backup:
+; bestanden die toen al bestonden worden teruggezet, nieuwe worden verwijderd,
+; ook ENVARC:Sys/printer.prefs en printergfx.prefs (de printerkeuze).
+FailAt 21
+Echo "AirPrintPS - AmiAirPrint verwijderen"
+Set APb Work:AmiAirPrint-Backup
+IF NOT EXISTS $APb
+  Echo "GESTOPT: $APb bestaat niet; AirPrintPS is niet geinstalleerd."
+  Quit 10
+EndIF
+RequestChoice >ENV:APSkeuze "AirPrintPS" "AmiAirPrint verwijderen en de vorige*Nprinterinstelling terugzetten?" "Verwijderen" "Stoppen"
+IF NOT $APSkeuze EQ 1
+  Echo "Gestopt, niets gewijzigd."
+  Quit 5
+EndIF
+Set APf 0
+; --- per bestand: terugzetten of verwijderen
+IF EXISTS $APb/dev
+  Copy $APb/dev DEVS:airprint.device CLONE QUIET
+Else
+  IF EXISTS $APb/dev.nieuw
+    Delete >NIL: DEVS:airprint.device QUIET
+  EndIF
+EndIF
+IF WARN
+  Set APf 1
+EndIF
+IF EXISTS $APb/drv
+  Copy $APb/drv DEVS:Printers/AirPrint CLONE QUIET
+Else
+  IF EXISTS $APb/drv.nieuw
+    Delete >NIL: DEVS:Printers/AirPrint QUIET
+  EndIF
+EndIF
+IF EXISTS $APb/prefs
+  Copy $APb/prefs SYS:Prefs/AmiAirPrint CLONE QUIET
+Else
+  IF EXISTS $APb/prefs.nieuw
+    Delete >NIL: SYS:Prefs/AmiAirPrint QUIET
+  EndIF
+EndIF
+IF EXISTS $APb/prefsinfo
+  Copy $APb/prefsinfo SYS:Prefs/AmiAirPrint.info CLONE QUIET
+Else
+  IF EXISTS $APb/prefsinfo.nieuw
+    Delete >NIL: SYS:Prefs/AmiAirPrint.info QUIET
+  EndIF
+EndIF
+IF EXISTS $APb/apprefs
+  Copy $APb/apprefs ENVARC:AirPrint.prefs CLONE QUIET
+  Copy $APb/apprefs ENV:AirPrint.prefs QUIET
+Else
+  IF EXISTS $APb/apprefs.nieuw
+    Delete >NIL: ENVARC:AirPrint.prefs ENV:AirPrint.prefs QUIET
+  EndIF
+EndIF
+IF EXISTS $APb/prtprefs
+  Copy $APb/prtprefs ENVARC:Sys/printer.prefs CLONE QUIET
+  Copy $APb/prtprefs ENV:Sys/printer.prefs QUIET
+Else
+  IF EXISTS $APb/prtprefs.nieuw
+    Delete >NIL: ENVARC:Sys/printer.prefs ENV:Sys/printer.prefs QUIET
+  EndIF
+EndIF
+IF EXISTS $APb/gfxprefs
+  Copy $APb/gfxprefs ENVARC:Sys/printergfx.prefs CLONE QUIET
+  Copy $APb/gfxprefs ENV:Sys/printergfx.prefs QUIET
+Else
+  IF EXISTS $APb/gfxprefs.nieuw
+    Delete >NIL: ENVARC:Sys/printergfx.prefs ENV:Sys/printergfx.prefs QUIET
+  EndIF
+EndIF
+IF EXISTS DEVS:airprint.device
+  IF EXISTS $APb/dev.nieuw
+    Set APf 1
+  EndIF
+EndIF
+IF $APf EQ 1 VAL
+  Echo "FOUT: niet alles kon worden teruggezet (staat airprint.device nog open?"
+  Echo "      Reboot en voer Verwijderen opnieuw uit). De back-up blijft staan."
+  Quit 20
+EndIF
+IF EXISTS Work:AmiAirPrint-Backup.oud
+  Delete Work:AmiAirPrint-Backup.oud ALL QUIET
+EndIF
+Rename $APb Work:AmiAirPrint-Backup.oud
+Echo "OK: AmiAirPrint is verwijderd; de vorige printerinstelling staat terug."
+Echo "    (Kopie van de back-up: Work:AmiAirPrint-Backup.oud.) Reboot nu."
