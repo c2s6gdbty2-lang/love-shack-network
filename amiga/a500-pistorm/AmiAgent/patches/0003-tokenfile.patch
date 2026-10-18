@@ -1,0 +1,56 @@
+--- a/agent/amiagent.c	2026-10-18 10:09:00.305601147 +0200
++++ b/agent/amiagent.c	2026-10-18 10:09:14.126937653 +0200
+@@ -3226,7 +3226,7 @@
+  * Entry point
+  * ------------------------------------------------------------------ */
+ 
+-static const char *TEMPLATE = "PORT/N,TLSPORT/N,TOKEN/K,QUIET/S,VERBOSE/S";
++static const char *TEMPLATE = "PORT/N,TLSPORT/N,TOKEN/K,QUIET/S,VERBOSE/S,TOKENFILE/K";
+ 
+ struct args {
+     LONG *port;
+@@ -3234,8 +3234,31 @@
+     STRPTR token;
+     LONG quiet;      /* accepted and ignored: quiet is now the default */
+     LONG verbose;
++    STRPTR tokenfile; /* LSN 0003 */
+ };
+ 
++/* LSN 0003: read the token from a file instead of the command line, so it
++ * never shows up in Status, the process list or a script. First line only,
++ * 1..63 characters. Returns 0 if the file is missing, empty or too long. */
++static int token_from_file(const char *path)
++{
++    char buf[80];
++    LONG n, i;
++    BPTR fh = Open((STRPTR)path, MODE_OLDFILE);
++    if (!fh) return 0;
++    n = Read(fh, buf, sizeof buf - 1);
++    Close(fh);
++    if (n <= 0) return 0;
++    buf[n] = '\0';
++    for (i = 0; i < n; i++) if (buf[i] == '\n' || buf[i] == '\r') { buf[i] = '\0'; break; }
++    n = (LONG)strlen(buf);
++    if (n < 1 || n > 63) { memset(buf, 0, sizeof buf); return 0; }
++    strcpy(g_token, buf);
++    memset(buf, 0, sizeof buf);
++    g_have_token = 1;
++    return 1;
++}
++
+ /* A tool type without a value ("VERBOSE") is on; one that says NO, OFF, FALSE
+  * or 0 is off. MatchToolValue does the case-insensitive, |-separated compare
+  * the Workbench convention expects. */
+@@ -3367,6 +3390,12 @@
+             g_token[sizeof g_token - 1] = '\0';
+             g_have_token = 1;
+         }
++        if (a.tokenfile && !token_from_file((const char *)a.tokenfile)) {
++            FreeArgs(rda);
++            fail("amiagent: TOKENFILE is missing, empty or longer than 63 characters.");
++            self->pr_WindowPtr = oldwinptr;
++            return RETURN_FAIL;
++        }
+         FreeArgs(rda);
+     }
+ #ifdef AMIAGENT_SSL

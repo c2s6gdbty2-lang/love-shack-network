@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "amiga-a500": {
+      "type": "stdio",
+      "command": "/path/to/love-shack-network/amiga/a500-pistorm/AmiAgent/pi/amimcp-lsn",
+      "args": [],
+      "env": {
+        "AMIGA_HOST": "192.168.1.70",
+        "LSN_ALLOWED_HOSTS": "192.168.1.70",
+        "LSN_MIN_INTERVAL": "1.0",
+        "AMIGA_TIMEOUT": "30"
+      }
+    }
+  }
+}

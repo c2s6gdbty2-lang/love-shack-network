@@ -1,0 +1,128 @@
+; $VER: Installeer 1.0 (18.10.2026) AmiAgent LSN
+; Installeert AmiAgent (amiagent 0.13.2-lsn1, ALLEEN LEZEN) uitsluitend in
+; Work:AmiAgent (plus, alleen na een Ja, het lade-icoon Work:AmiAgent.info).
+; Overschrijft nooit iets. Startup-Sequence, User-Startup, WBStartup, ENVARC:,
+; DEVS:, WiFiNet, PlipNet, RetroMount, AmigaShare en inet.access blijven
+; ongewijzigd. Er start niets automatisch.
+FailAt 21
+Echo "AmiAgent 1.0 - installatie (Claude Code-verbinding, ALLEEN LEZEN)"
+Echo "Alleen Work:AmiAgent wordt aangemaakt; het opstartproces blijft ongewijzigd."
+Echo ""
+
+Echo "[1] Disk en Work: controleren"
+IF NOT EXISTS AmiAgent-Installatie:AmiAgent/amiagent
+  Set AAmelding "De installatiedisk is onvolledig."
+  Skip fout
+EndIf
+Assign >NIL: Work: EXISTS
+IF WARN
+  Set AAmelding "Er is geen volume Work: gevonden."
+  Skip fout
+EndIf
+IF EXISTS Work:AmiAgent
+  Set AAmelding "Work:AmiAgent bestaat al; niets overschreven.**NGebruik eerst Verwijderen."
+  Skip fout
+EndIf
+IF EXISTS Work:AmiAgent.info
+  Set AAmelding "Work:AmiAgent.info bestaat al; niets overschreven."
+  Skip fout
+EndIf
+AmiAgent-Installatie:C/VrijKB Work: 300
+IF WARN
+  Set AAmelding "Work: is niet schrijfbaar of te vol**N(300 KB nodig)."
+  Skip fout
+EndIf
+Echo "[1] OK"
+
+Echo "[2] Token (gedeeld geheim met de Pi; wordt als sterretjes getoond)"
+Echo "    Neem het token over dat lsn-token op de Pi heeft getoond."
+Set AAp 0
+Lab vraag
+Delete >NIL: T:AA-t1 T:AA-t2 QUIET
+AmiAgent-Installatie:C/WiFiVraag "    Token (leeg = annuleren): " TO T:AA-t1 MIN 16 MAX 63 HIDE NOLF
+IF WARN
+  Skip foutt
+EndIf
+AmiAgent-Installatie:C/WiFiVraag "    Nogmaals ter controle:     " TO T:AA-t2 MIN 16 MAX 63 HIDE NOLF
+IF WARN
+  Skip foutt
+EndIf
+Search >NIL: T:AA-t1 " " QUIET
+IF NOT WARN
+  Echo "    Een token met een spatie werkt niet; probeer opnieuw."
+  Skip opnieuw
+EndIf
+Set AAt1 `Type T:AA-t1`
+Set AAt2 `Type T:AA-t2`
+IF "$AAt1" EQ "$AAt2"
+  UnSet AAt1
+  UnSet AAt2
+  Skip tok
+EndIf
+UnSet AAt1
+UnSet AAt2
+Echo "    De twee invoeren verschillen; probeer opnieuw."
+Lab opnieuw
+Set AAp `Eval $AAp + 1`
+IF NOT $AAp GE 3 VAL
+  Skip vraag BACK
+EndIf
+Lab foutt
+Delete >NIL: T:AA-t1 T:AA-t2 QUIET
+Set AAmelding "Geen (gelijk) token van minstens 16 tekens;**Ner is niets gewijzigd."
+Skip fout
+Lab tok
+Echo "[2] OK"
+
+RequestChoice >ENV:AAja "AmiAgent installeren" "Installeren naar Work:AmiAgent?*N*NAmiAgent start nooit vanzelf en kan op deze*NAmiga alleen lezen (geen schrijven, geen invoer)." "Installeren" "Annuleren"
+Set AAja `Type ENV:AAja`
+Delete >NIL: ENV:AAja QUIET
+IF NOT "$AAja" EQ "1"
+  Delete >NIL: T:AA-t1 T:AA-t2 QUIET
+  Set AAmelding "Geannuleerd; er is niets gewijzigd."
+  Skip fout
+EndIf
+
+Echo "[3] Kopieren naar Work:AmiAgent"
+MakeDir Work:AmiAgent
+IF WARN
+  Delete >NIL: T:AA-t1 T:AA-t2 QUIET
+  Set AAmelding "Work:AmiAgent kon niet aangemaakt worden."
+  Skip fout
+EndIf
+Copy AmiAgent-Installatie:AmiAgent Work:AmiAgent ALL CLONE QUIET
+MakeDir >NIL: Work:AmiAgent/Prefs
+Copy T:AA-t1 Work:AmiAgent/Prefs/Token QUIET
+Delete >NIL: T:AA-t1 T:AA-t2 QUIET
+; token: niet uitvoerbaar, niet schrijfbaar, niet per ongeluk te verwijderen
+Protect Work:AmiAgent/Prefs/Token r QUIET
+AmiAgent-Installatie:C/CRCLijst AmiAgent-Installatie:S/Bestanden.crc
+IF WARN
+  Protect >NIL: Work:AmiAgent/Prefs/Token rwd QUIET
+  Delete >NIL: Work:AmiAgent ALL QUIET FORCE
+  Set AAmelding "Controle mislukt; Work:AmiAgent is weer**Nverwijderd. Probeer opnieuw."
+  Skip fout
+EndIf
+IF NOT EXISTS Work:AmiAgent/Prefs/Token
+  Delete >NIL: Work:AmiAgent ALL QUIET FORCE
+  Set AAmelding "Het token kon niet opgeslagen worden;**NWork:AmiAgent is weer verwijderd."
+  Skip fout
+EndIf
+Echo "[3] OK"
+
+RequestChoice >ENV:AAicoon "AmiAgent installeren" "Lade-icoon Work:AmiAgent.info plaatsen?*N*NZonder dit icoon is de lade alleen zichtbaar*Nvia Venster > Toon > Alle bestanden." "Ja" "Nee"
+Set AAicoon `Type ENV:AAicoon`
+Delete >NIL: ENV:AAicoon QUIET
+IF "$AAicoon" EQ "1"
+  Copy AmiAgent-Installatie:AmiAgent.info Work:AmiAgent.info CLONE QUIET
+EndIf
+Echo ""
+Echo "=== Installatie klaar: Work:AmiAgent ==="
+RequestChoice >NIL: "AmiAgent installeren" "Installatie klaar.*N*NOpen Work: > AmiAgent en kies*NAmiAgent Start (na Wi-Fi of Plipbox)." "OK"
+Skip einde
+
+Lab fout
+Echo ""
+Echo "GESTOPT: $AAmelding"
+RequestChoice >NIL: "AmiAgent installeren" "Installatie gestopt*N*N$AAmelding" "OK"
+Lab einde

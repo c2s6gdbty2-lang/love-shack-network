@@ -1,0 +1,13 @@
+# Build output and the pinned upstream checkout (build/build-agent.sh)
+/out/
+/upstream/
+# Audit log when amimcp-ro.py is started without LSN_AUDIT_LOG
+/log/
+# Emulator test results and the generated test token
+/tests/resultaten/
+/tests/testtoken
+/tests/ns.pid
+# Never commit real configuration or secrets
+*.local.json
+token
+__pycache__/

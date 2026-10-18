@@ -1,0 +1,248 @@
+Runtime notices for amiagent and amimon (newlib, bebbo's AmigaOS fork)
+========================================================================
+
+A built amiagent or amimon is statically linked with the C runtime that bebbo's
+amiga-gcc ships prebuilt (lib/libc.a and lib/crt0.o, amiga-gcc commit 2f240d1,
+17-07-2026), plus libnix's libstubs.a (public domain) and libgcc (GPL-3.0 with
+the GCC Runtime Library Exception). Which objects are linked was read from
+linker maps on 18-10-2026. The notices below are copied verbatim from the
+sources of those objects in newlib-cygwin, branch amiga (commit 998257d; none
+of these files changed after 17-07-2026).
+
+STATUS. 20 AmigaOS-specific objects (crt0, malloc.cpp, open, __nocommandline,
+__dosbase, __stdiowin, __mathieeedoubbas, dummy, the IEEE wrappers __adddf3,
+__subdf3, __muldf3, __divdf3, __eqdf2, __fixdfsi, __floatsidf, __floatunsidf,
+and __divsi3, __mulsi3, __udivsi3) carry no licence notice. Their author has
+not yet confirmed the terms under which they may be redistributed. Until that
+is settled, the binary disk image must not be distributed publicly. See
+THIRD_PARTY.md in the source repository.
+
+This product includes software developed by the University of California,
+Berkeley and its contributors.
+
+------------------------------------------------------------------------
+Files without their own notice (atoi, calloc, the malloc helpers callocr/malignr, the reentrant syscall wrappers closer/readr/writer/lseekr/fstatr/isattyr, impure, envlock, localeconv, mbtowc_r, mem*/str* functions, wcrtomb, wcsnrtombs, wcsrtombs, wctomb_r, s_frexp, realloc). COPYING.NEWLIB says that, unless a file says otherwise, the newlib notices apply; the general one is:
+
+(1) Red Hat Incorporated
+
+Copyright (c) 1994-2009  Red Hat, Inc. All rights reserved.
+
+This copyrighted material is made available to anyone wishing to use,
+modify, copy, or redistribute it subject to the terms and conditions
+of the BSD License.   This program is distributed in the hope that 
+it will be useful, but WITHOUT ANY WARRANTY expressed or implied, 
+including the implied warranties of MERCHANTABILITY or FITNESS FOR 
+A PARTICULAR PURPOSE.  A copy of this license is available at 
+http://www.opensource.org/licenses. Any Red Hat trademarks that are
+incorporated in the source code or documentation are not subject to
+the BSD License and may only be used or replicated with the express
+permission of Red Hat, Inc.
+
+------------------------------------------------------------------------
+stdio: fclose, fflush, findfp, fputs, fvwrite, fwalk, puts, sprintf, stdio, vsnprintf, svfprintf, svfiprintf (from vfprintf.c), and in the same wording with 1990, 2007: makebuf, snprintf, wsetup:
+
+Copyright (c) 1990 The Regents of the University of California.
+All rights reserved.
+
+Redistribution and use in source and binary forms are permitted
+provided that the above copyright notice and this paragraph are
+duplicated in all such forms and that any documentation,
+advertising materials, and other materials related to such
+distribution and use acknowledge that the software was developed
+by the University of California, Berkeley.  The name of the
+University may not be used to endorse or promote products derived
+from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+------------------------------------------------------------------------
+ctype_:
+
+Copyright (c) 1989 The Regents of the University of California.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+This product includes software developed by the University of
+California, Berkeley and its contributors.
+4. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+------------------------------------------------------------------------
+strtol and vfprintf.c also carry the Berkeley 3-clause licence (see ctype_ above).
+
+------------------------------------------------------------------------
+getenv_r:
+
+Copyright (c) 1987 Regents of the University of California.
+All rights reserved.
+
+Redistribution and use in source and binary forms are permitted
+provided that: (1) source distributions retain this entire copyright
+notice and comment, and (2) distributions including binaries display
+the following acknowledgement:  ``This product includes software
+developed by the University of California, Berkeley and its contributors''
+in the documentation or other materials provided with the distribution
+and in all advertising materials mentioning features or use of this
+software. Neither the name of the University nor the names of its
+contributors may be used to endorse or promote products derived
+from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+------------------------------------------------------------------------
+environ:
+
+ Copyright (c) 1995, 1996, 2002 Red Hat Incorporated.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+   Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+   Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+   The name of Red Hat Incorporated may not be used to endorse
+   or promote products derived from this software without specific
+   prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL RED HAT INCORPORATED BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------
+locale (FreeBSD part):
+
+Copyright (c) 1996 - 2002 FreeBSD Project
+Copyright (c) 1991, 1993
+     The Regents of the University of California.  All rights reserved.
+
+This code is derived from software contributed to Berkeley by
+Paul Borman at Krystal Technologies.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+4. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+------------------------------------------------------------------------
+strlcpy:
+
+Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. The name of the author may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------
+dtoa, mprec:
+
+The author of this software is David M. Gay.
+
+Copyright (c) 1991 by AT&T.
+
+Permission to use, copy, modify, and distribute this software for any
+purpose without fee is hereby granted, provided that this entire notice
+is included in all copies of any software which is or includes a copy
+or modification of this software and in all copies of the supporting
+documentation for such software.
+
+THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+WARRANTY.  IN PARTICULAR, NEITHER THE AUTHOR NOR AT&T MAKES ANY
+REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+
+------------------------------------------------------------------------
+AmigaOS-specific __cmpxf2 and __unorddf2 (from GCC's fpgnulib.c):
+
+gnulib support for software floating point.
+Copyright (C) 1991 by Pipeline Associates, Inc.  All rights reserved.
+Permission is granted to do *anything* you want with this file,
+commercial or otherwise, provided this message remains intact.  So there!
+I would appreciate receiving any updates/patches/changes that anyone
+makes, and am willing to be the repository for said changes (am I
+making a big mistake?).
+
+Pat Wood
+Pipeline Associates, Inc.
+pipeline!phw@motown.com or
+sun!pipeline!phw or
+uunet!motown!pipeline!phw
+
+05/01/91 -- V1.0 -- first release to gcc mailing lists
+05/04/91 -- V1.1 -- added float and double prototypes and return values
+                 -- fixed problems with adding and subtracting zero
+                 -- fixed rounding in truncdfsf2
+                 -- fixed SWAP define and tested on 386

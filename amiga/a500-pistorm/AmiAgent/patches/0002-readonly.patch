@@ -1,0 +1,200 @@
+--- a/agent/amiagent.c	2026-10-18 10:08:05.937450665 +0200
++++ b/agent/amiagent.c	2026-10-18 10:09:00.305601147 +0200
+@@ -134,6 +134,61 @@
+ static UBYTE g_io[IOBUF];
+ static char g_token[128];
+ static int g_have_token = 0;
++
++#ifdef AMIAGENT_READONLY
++/* ------------------------------------------------------------------ *
++ * LSN 0002: READONLY build (The Love Shack Network).
++ *
++ * Compiled in, not a switch: this binary cannot be talked into writing.
++ * Every channel that can change the machine is closed in the agent itself,
++ * so safety does not depend on the client-side filter alone:
++ *   - PUT (file write), AREXX (arbitrary programs), INPUT and UIACT
++ *     (mouse/keyboard/gadgets/menus), BREAK (Ctrl-C to other processes):
++ *     refused before they reach their handler.
++ *   - EXEC: only the exact words below, without arguments; the agent then
++ *     runs its own fixed command line, so client text never reaches the
++ *     shell (no redirection, no second command, no FLUSH).
++ *   - GET/GETRANGE: only real files on a filesystem (Lock + Examine +
++ *     OpenFromLock), never a handler such as CON:, SER: or PIPE:.
++ *   - local ARexx port: ACTIVATEWINDOW, ENTERTEXT/TYPE, KEY, TASKPRI refused.
++ * ------------------------------------------------------------------ */
++#define AMIAGENT_LSN "lsn1 READONLY"
++static const struct { const char *word; const char *cmd; } ro_cmds[] = {
++    { "Avail",      "C:Avail" },
++    { "Version",    "C:Version" },
++    { "ShowConfig", "SYS:Tools/ShowConfig" },
++};
++
++static int ro_ieq(const UBYTE *p, ULONG len, const char *w)
++{
++    ULONG i;
++    if (len != (ULONG)strlen(w)) return 0;
++    for (i = 0; i < len; i++) {
++        UBYTE a = p[i], b = (UBYTE)w[i];
++        if (a >= 'a' && a <= 'z') a -= 32;
++        if (b >= 'a' && b <= 'z') b -= 32;
++        if (a != b) return 0;
++    }
++    return 1;
++}
++
++static const char *ro_lookup(const UBYTE *p, ULONG len)
++{
++    ULONG i;
++    for (i = 0; i < sizeof ro_cmds / sizeof ro_cmds[0]; i++)
++        if (ro_ieq(p, len, ro_cmds[i].word)) return ro_cmds[i].cmd;
++    return NULL;
++}
++
++static int ro_blocked(UBYTE code)
++{
++    return code == 0x04 /* PUT */ || code == 0x12 /* AREXX */ ||
++           code == 0x08 /* INPUT */ || code == 0x0E /* UIACT */ ||
++           code == 0x09 /* BREAK */;
++}
++#else
++#define AMIAGENT_LSN "lsn1"
++#endif
+ static int g_quiet = 1;   /* silent unless VERBOSE: see say() */
+ static int g_stop  = 0;   /* set by the ARexx QUIT command; ends the main loop */
+ 
+@@ -451,8 +506,8 @@
+ static int do_ping(int sock)
+ {
+     char msg[160];
+-    sprintf(msg, "amiagent %s  AmigaOS dos.library %ld\n",
+-            AMIAGENT_VERSION, (long)((struct Library *)DOSBase)->lib_Version);
++    sprintf(msg, "amiagent %s (%s)  AmigaOS dos.library %ld\n",
++            AMIAGENT_VERSION, AMIAGENT_LSN, (long)((struct Library *)DOSBase)->lib_Version);
+     return send_resp(sock, ST_OK, msg, (ULONG)strlen(msg));
+ }
+ 
+@@ -653,6 +708,19 @@
+     len -= 2;
+     if (!timeout) timeout = 120;
+ 
++#ifdef AMIAGENT_READONLY
++    {
++        const char *fixed = ro_lookup(payload, len);
++        if (!fixed) {
++            say("readonly: EXEC refused\n");
++            return send_err(sock, "READONLY: only Avail, Version or ShowConfig "
++                                  "(exactly that word, no arguments)");
++        }
++        payload = (const UBYTE *)fixed;
++        len = (ULONG)strlen(fixed);
++    }
++#endif
++
+     /* An earlier command that outlived its deadline may have finished since. */
+     if (g_job.busy && g_job.done) job_reap();
+ 
+@@ -849,6 +917,32 @@
+     return 1;
+ }
+ 
++/* LSN 0002: open for reading. In the READONLY build only an existing file on
++ * a filesystem qualifies: Lock() fails on handlers like CON:, RAW:, SER:,
++ * PAR:, PRT: or PIPE: (which would open a window or consume data), and a
++ * directory is refused before anything is opened. */
++static BPTR ro_open(const char *path)
++{
++#ifdef AMIAGENT_READONLY
++    BPTR lock = Lock((STRPTR)path, ACCESS_READ), fh;
++    struct FileInfoBlock *fib;
++    if (!lock) return 0;
++    fib = (struct FileInfoBlock *)AllocDosObject(DOS_FIB, NULL);
++    if (!fib || !Examine(lock, fib) || fib->fib_DirEntryType >= 0) {
++        if (fib) FreeDosObject(DOS_FIB, fib);
++        UnLock(lock);
++        SetIoErr(ERROR_OBJECT_WRONG_TYPE);
++        return 0;
++    }
++    FreeDosObject(DOS_FIB, fib);
++    fh = OpenFromLock(lock);
++    if (!fh) UnLock(lock);
++    return fh;
++#else
++    return Open((STRPTR)path, MODE_OLDFILE);
++#endif
++}
++
+ static int do_get(int sock, const UBYTE *payload, ULONG len)
+ {
+     char *path = dup_cstr(payload, len);
+@@ -858,7 +952,7 @@
+ 
+     if (!path) return send_err(sock, "out of memory");
+ 
+-    fh = Open((STRPTR)path, MODE_OLDFILE);
++    fh = ro_open(path);
+     if (!fh) {
+         char msg[300];
+         sprintf(msg, "cannot open \"%s\" for reading (DOS error %ld)",
+@@ -897,7 +991,7 @@
+ 
+     path = dup_cstr(payload + 8, len - 8);
+     if (!path) return send_err(sock, "out of memory");
+-    fh = Open((STRPTR)path, MODE_OLDFILE);
++    fh = ro_open(path);
+     if (!fh) {
+         char msg[300];
+         sprintf(msg, "cannot open \"%s\" for reading (DOS error %ld)", path, (long)IoErr());
+@@ -1106,6 +1200,7 @@
+     buf_init(&b);
+ 
+     sprintf(line, "agent=amiagent %s\n", AMIAGENT_VERSION); ok &= buf_str(&b, line);
++    sprintf(line, "build=%s\n", AMIAGENT_LSN); ok &= buf_str(&b, line);
+     sprintf(line, "kickstart=%ld.%ld\n", (long)sb->LibNode.lib_Version,
+             (long)sb->LibNode.lib_Revision); ok &= buf_str(&b, line);
+     sprintf(line, "dos.library=%ld\n",
+@@ -2621,6 +2716,14 @@
+         arg++;
+     }
+ 
++#ifdef AMIAGENT_READONLY
++    if (ci_eq(verb, "ACTIVATEWINDOW") || ci_eq(verb, "ENTERTEXT") ||
++        ci_eq(verb, "TYPE") || ci_eq(verb, "KEY") || ci_eq(verb, "TASKPRI")) {
++        strncpy(res, "READONLY", ressz - 1);
++        res[ressz - 1] = '\0';
++        return 20;
++    }
++#endif
+     if (ci_eq(verb, "ACTIVATEWINDOW")) {
+         if (!arg[0]) return 10;
+         return win_activate(arg, res, ressz) ? 0 : 5;
+@@ -2937,6 +3040,16 @@
+             break;
+         }
+ 
++#ifdef AMIAGENT_READONLY
++        if (ro_blocked(code)) {
++            char msg[96];
++            say("readonly: %s refused\n", cmd_name(code));
++            sprintf(msg, "READONLY: %s is disabled in this read-only agent", cmd_name(code));
++            send_err(sock, msg);
++            break;
++        }
++#endif
++
+         board_begin(code, body, got, client);
+ 
+         switch (code) {
+@@ -3260,6 +3373,13 @@
+     if (tlsport <= 0) tlsport = port + 1;   /* default: plain port + 1 */
+ #endif
+ 
++#ifdef AMIAGENT_READONLY
++    if (!g_have_token) {
++        fail("amiagent (LSN READONLY): refusing to start without a token.");
++        rc = RETURN_FAIL; goto out;
++    }
++#endif
++
+     /* LSN 0001: AmiTCP 3.0b2 (WiFiNet/PlipNet) provides bsdsocket.library
+      * 3.28. Every socket call this agent makes (socket, bind, listen, accept,
+      * recv, send, setsockopt, WaitSelect, Inet_NtoA, CloseSocket) is in the

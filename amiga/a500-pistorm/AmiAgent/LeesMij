@@ -1,0 +1,36 @@
+AmiAgent 1.0 - The Love Shack Network
+=====================================
+
+Wat het is
+  amiagent 0.13.2 (amimcp, Apache-2.0, Thomas Luebker) met drie kleine
+  LSN-aanpassingen:
+    0001  werkt met AmiTCP 3.0b2 (bsdsocket.library v3)
+    0002  ALLEEN LEZEN, vast ingebouwd in deze versie
+    0003  token uit een bestand (Prefs/Token), niet op de opdrachtregel
+  Claude Code (op de Mac of de Pi) praat via MCP met deze agent.
+
+Wat de agent in deze versie WEL kan
+  - systeeminformatie, vrij Chip/Fast RAM, volumes
+  - laden tonen en bestanden lezen (alleen echte bestanden)
+  - schermafdruk, schermen, vensters en knoppen bekijken, menu's bekijken
+  - alleen deze drie opdrachten: Avail, Version, ShowConfig
+
+Wat hij NIET kan (geweigerd door de agent zelf)
+  - bestanden schrijven of verwijderen, willekeurige Shell-opdrachten
+  - ARexx-programma's, muis, toetsenbord, knoppen of menu's bedienen
+  - Ctrl-C naar andere processen sturen
+  - via de lokale ARexx-poort AMIAGENT: invoer of taakprioriteit
+
+Gebruik
+  1. Start eerst het netwerk (Wi-Fi of Plipbox).
+  2. AmiAgent Start. AmiAgent luistert dan op poort 7846.
+  3. AmiAgent Stop als je klaar bent. Na een reboot draait hij niet meer.
+  Grote bestanden gaan via AmigaShare:, niet via AmiAgent.
+
+Veiligheid
+  - Het token gaat onversleuteld over het thuisnetwerk.
+  - Gebruik AmiAgent alleen op het eigen netwerk, nooit via internet.
+  - Work:AmiAgent/Prefs/Token niet delen.
+
+Verwijderen
+  Installatiedisk > Verwijderen (alleen Work:AmiAgent).

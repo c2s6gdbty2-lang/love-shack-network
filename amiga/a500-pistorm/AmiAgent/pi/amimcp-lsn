@@ -1,0 +1,23 @@
+#!/bin/bash
+# amimcp-lsn - start the READONLY client filter (amimcp-ro.py) as the MCP server.
+# Claude Code starts this script; configure it in the MCP entry (see mcp.example.json).
+#
+# Required environment (no defaults on purpose, so nothing points at someone else's network):
+#   AMIGA_HOST          IPv4 address of your Amiga running amiagent
+#   LSN_ALLOWED_HOSTS   comma-separated addresses the filter may connect to (normally = AMIGA_HOST)
+# Optional:
+#   AMIGA_PORT (7846), AMIGA_TIMEOUT (seconds, upstream default), LSN_MIN_INTERVAL (0.5),
+#   LSN_AUDIT_LOG (~/.local/state/amiagent-lsn/audit.log), LSN_UPSTREAM (../upstream/server/amimcp.py)
+#
+# The token is read from ~/.config/amiagent-lsn/token (mode 600, made by lsn-token) and passed
+# to the child process only. It is never written to the audit log, and never belongs in git.
+set -e
+CONF="$HOME/.config/amiagent-lsn"     # same place as lsn-token
+[ -r "$CONF/token" ] || { echo "amimcp-lsn: $CONF/token is missing (run lsn-token first)" >&2; exit 2; }
+[ "$(stat -c %a "$CONF/token")" = 600 ] || { echo "amimcp-lsn: $CONF/token must have mode 600" >&2; exit 2; }
+[ -n "${AMIGA_HOST:-}" ] || { echo "amimcp-lsn: set AMIGA_HOST" >&2; exit 2; }
+[ -n "${LSN_ALLOWED_HOSTS:-}" ] || { echo "amimcp-lsn: set LSN_ALLOWED_HOSTS" >&2; exit 2; }
+export AMIGA_HOST AMIGA_PORT="${AMIGA_PORT:-7846}" LSN_ALLOWED_HOSTS
+export AMIGA_TOKEN="$(cat "$CONF/token")"
+export LSN_AUDIT_LOG="${LSN_AUDIT_LOG:-${XDG_STATE_HOME:-$HOME/.local/state}/amiagent-lsn/audit.log}"
+exec python3 -I "$(dirname "$(readlink -f "$0")")/amimcp-ro.py"

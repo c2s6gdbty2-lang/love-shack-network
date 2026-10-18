@@ -1,0 +1,36 @@
+; $VER: AmiAgent Stop 1.0 (18.10.2026) The Love Shack Network
+; Stopt alleen amiagent (Ctrl-C via Break). Het netwerk, Retro: en
+; AmigaShare: blijven draaien.
+FailAt 21
+Echo "AmiAgent Stop"
+Echo ""
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  Set AAmelding "AmiAgent draaide niet."
+  Skip klaar
+EndIf
+Set AAnr `Status COMMAND=Work:AmiAgent/amiagent`
+Set AAi 0
+Lab breek
+Break $AAnr C
+Wait 1
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  Skip weg
+EndIf
+Set AAi `Eval $AAi + 1`
+IF NOT $AAi GE 10 VAL
+  Skip breek BACK
+EndIf
+Set AAmelding "AmiAgent reageert niet op Ctrl-C**N(een opdracht loopt nog?). Probeer later opnieuw."
+Skip fout
+Lab weg
+Set AAmelding "AmiAgent is gestopt."
+Lab klaar
+Echo "$AAmelding"
+RequestChoice >NIL: "AmiAgent Stop" "$AAmelding" "OK"
+Skip einde
+Lab fout
+Echo "FOUT: $AAmelding"
+RequestChoice >NIL: "AmiAgent Stop" "Niet gestopt*N*N$AAmelding" "OK"
+Lab einde

@@ -1,0 +1,45 @@
+; $VER: AmiAgent Start 1.0 (18.10.2026) The Love Shack Network
+; Start amiagent 0.13.2-lsn1 (ALLEEN LEZEN) handmatig, op poort 7846.
+; Nooit automatisch: geen User-Startup, geen WBStartup. Gebruikt de al
+; draaiende TCP/IP-stack (Wi-Fi of Plipbox) en start zelf geen netwerk.
+; Het token staat in Work:AmiAgent/Prefs/Token en komt niet op de opdrachtregel.
+FailAt 21
+Echo "AmiAgent Start - amiagent 0.13.2-lsn1 (ALLEEN LEZEN)"
+Echo ""
+IF NOT EXISTS Work:AmiAgent/amiagent
+  Set AAmelding "Work:AmiAgent/amiagent ontbreekt."
+  Skip fout
+EndIf
+IF NOT EXISTS Work:AmiAgent/Prefs/Token
+  Set AAmelding "Er is geen token ingesteld**N(Work:AmiAgent/Prefs/Token). Installeer opnieuw."
+  Skip fout
+EndIf
+Work:AmiAgent/C/Geladen bsdsocket.library
+IF WARN
+  Set AAmelding "Er draait nog geen netwerk.**NStart eerst Wi-Fi (StartWiFi) of de Plipbox."
+  Skip fout
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  Set AAmelding "AmiAgent draait al."
+  Skip klaar
+EndIf
+Echo "[1] amiagent starten (meldingen in T:AmiAgent.log)"
+Run <NIL: >T:AmiAgent.log Work:AmiAgent/amiagent TOKENFILE=Work:AmiAgent/Prefs/Token
+Wait 3
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  Type T:AmiAgent.log
+  Set AAmelding "amiagent is direct weer gestopt;**Nzie het venster of T:AmiAgent.log."
+  Skip fout
+EndIf
+Echo "[1] OK: amiagent luistert op poort 7846 (alleen lezen, token vereist)."
+Set AAmelding "AmiAgent draait (ALLEEN LEZEN) op poort 7846.**NStoppen: AmiAgent Stop."
+Lab klaar
+Echo "$AAmelding"
+RequestChoice >NIL: "AmiAgent" "$AAmelding" "OK"
+Skip einde
+Lab fout
+Echo "FOUT: $AAmelding"
+RequestChoice >NIL: "AmiAgent" "AmiAgent NIET gestart*N*N$AAmelding" "OK"
+Lab einde

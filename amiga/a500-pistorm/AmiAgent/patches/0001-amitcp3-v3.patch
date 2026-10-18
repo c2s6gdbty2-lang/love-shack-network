@@ -1,0 +1,15 @@
+--- a/agent/amiagent.c	2026-10-18 10:06:58.374182590 +0200
++++ b/agent/amiagent.c	2026-10-18 10:08:05.937450665 +0200
+@@ -3260,7 +3260,11 @@
+     if (tlsport <= 0) tlsport = port + 1;   /* default: plain port + 1 */
+ #endif
+ 
+-    SocketBase = OpenLibrary((STRPTR)"bsdsocket.library", 4);
++    /* LSN 0001: AmiTCP 3.0b2 (WiFiNet/PlipNet) provides bsdsocket.library
++     * 3.28. Every socket call this agent makes (socket, bind, listen, accept,
++     * recv, send, setsockopt, WaitSelect, Inet_NtoA, CloseSocket) is in the
++     * v3 API, so asking for v3 is enough; v4 refused to start on AmiTCP 3. */
++    SocketBase = OpenLibrary((STRPTR)"bsdsocket.library", 3);
+     if (!SocketBase) {
+         fail("amiagent: no bsdsocket.library - start your TCP/IP stack first.");
+         rc = RETURN_FAIL; goto out;

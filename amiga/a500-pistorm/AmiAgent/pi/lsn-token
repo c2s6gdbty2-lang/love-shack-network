@@ -1,0 +1,13 @@
+#!/bin/bash
+# lsn-token - maakt EENMALIG een nieuw token voor AmiAgent (24 tekens, a-z en 2-9, zonder
+# verwarrende tekens) in ~/.config/amiagent-lsn/token (modus 600) en toont het om op de
+# Amiga in te typen bij Installeer. Overschrijft een bestaand token alleen met --nieuw.
+set -e
+CONF="$HOME/.config/amiagent-lsn"; F="$CONF/token"
+if [ -e "$F" ] && [ "$1" != "--nieuw" ]; then echo "Er is al een token ($F). Gebruik --nieuw om te vervangen."; exit 1; fi
+umask 077; mkdir -p "$CONF"
+python3 -I -c "import secrets; a='abcdefghjkmnpqrstuvwxyz23456789'; print(''.join(secrets.choice(a) for _ in range(24)))" > "$F"
+chmod 600 "$F"
+echo "Nieuw token (typ dit op de Amiga bij Installeer, twee keer):"
+echo; sed 's/\(.....\)/\1 /g' "$F"; echo
+echo "(zonder de spaties; de spaties zijn alleen leeshulp)"

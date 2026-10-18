@@ -49,6 +49,8 @@ The two lines at the top are the project's guiding principles. In practice they 
 | Commodore 64 Ultimate | Ultimate network | FTP | Ultimate printer → server spooler → CUPS | ✅ |
 | Raspberry Pi 5 retro server | LAN | Samba, FTP | CUPS queue, print watchers | ✅ |
 
+**AI-assisted diagnostics.** [AmiAgent](amiga/a500-pistorm/AmiAgent/) lets Claude Code look at the real A500 PiStorm through MCP: system information, files, screenshots. The agent is compiled read-only, so it cannot change anything. ✅ on the real A500 for read-only diagnostics; the agent's own write refusal without the filter is 🧪 emulator-tested.
+
 See [`docs/AmigaShare.md`](docs/AmigaShare.md) for the shared read/write volume, [`docs/architecture/`](docs/architecture/) for the network architecture, [`docs/hardware/`](docs/hardware/) for each machine and [`docs/issues/`](docs/issues/) for known technical issues.
 
 ## Computerfluid Computing
@@ -94,10 +96,12 @@ docs/architecture/   network architecture, diagrams, address plan
 docs/hardware/       one page per machine
 docs/issues/         known technical issues (analysis, no unapproved fixes)
 amiga/a600/          A600AirPrint package (tested files, network details as tokens) + guide
-amiga/a500-pistorm/  AirPrintPS package + guide (Wi-Fi and RetroMount documented)
+amiga/a500-pistorm/  AirPrintPS package + guide (Wi-Fi and RetroMount documented);
+                     AmiAgent/ read-only AI diagnostics (amiagent patches, filter, installer, tests)
 amiga/a500-tf536/    status only (not in this release)
 amiga/build/         build_public.py and network.example.ini
-amiga/common/tools/  icon.py (Amiga icons), asm68k.py (small 68000 assembler)
+amiga/common/tools/  icon.py (Amiga icons), asm68k.py (small 68000 assembler),
+                     WiFiVraag/Geladen/VrijKB sources + build_tools.py
 printing/            print routes; AmiAirPrint patch, licence, provenance
 networking/          AmiTCP, Plipbox, Wi-Fi patch + WiFiLink, RetroMount
 server/              retro server: Samba layout, print watchers + systemd units

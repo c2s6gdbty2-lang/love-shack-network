@@ -1,3 +1,7 @@
 # KIND	path suffix	reason (every exception must be justified and checked by hand)
 WB	A600AirPrint-public.adf	Names such as printer.device and MultiView appear only inside the package's own script texts. The xdftool file listing (verified 17-10-2026) shows no Workbench files.
 WB	AirPrintPS-public.adf	Same reason as above; file listing verified 17-10-2026.
+CRED	AmiAgent/Installeer	Line 97 is a comment about the protection bits of the token file, not an assignment. Checked by hand 18-10-2026.
+CRED	AmiAgent/tests/lsntest.py	TOKEN/token are variables holding the generated test token (tests/testtoken, git-ignored), one deliberately wrong literal for the refusal test, and the sandbox smbd test password. No real secret. Checked 18-10-2026.
+CRED	AmiAgent-Installatie.adf	Contains Installeer (see the comment above). The installer asks for the token; no token is on the disk. Checked 18-10-2026.
+WB	AmiAgent-Installatie.adf	Names such as assign, icon.library and MultiView appear only inside the agent binary and script texts. The xdftool listing (18-10-2026) shows 27 own files and no Workbench files.

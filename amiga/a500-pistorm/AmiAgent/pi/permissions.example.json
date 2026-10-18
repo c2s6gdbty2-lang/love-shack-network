@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__amiga-a500__amiga_shell",
+      "mcp__amiga-a500__amiga_system_info",
+      "mcp__amiga-a500__amiga_screenshot",
+      "mcp__amiga-a500__amiga_screens"
+    ],
+    "deny": [
+      "mcp__amiga-a500__amiga_write_file",
+      "mcp__amiga-a500__amiga_arexx",
+      "mcp__amiga-a500__amiga_type",
+      "mcp__amiga-a500__amiga_key",
+      "mcp__amiga-a500__amiga_click",
+      "mcp__amiga-a500__amiga_drag",
+      "mcp__amiga-a500__amiga_button",
+      "mcp__amiga-a500__amiga_move_mouse",
+      "mcp__amiga-a500__amiga_break",
+      "mcp__amiga-a500__amiga_ui_click",
+      "mcp__amiga-a500__amiga_menu_select"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+; $VER: Verwijderen 1.0 (18.10.2026) AmiAgent LSN
+; Verwijdert alleen Work:AmiAgent en Work:AmiAgent.info. Weigert zolang
+; amiagent draait. Verder wordt niets aangeraakt.
+FailAt 21
+Echo "AmiAgent - verwijderen"
+IF NOT EXISTS Work:AmiAgent
+  Set AAmelding "Work:AmiAgent bestaat niet; er is niets te verwijderen."
+  Skip fout
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  Set AAmelding "AmiAgent draait nog. Kies eerst AmiAgent Stop."
+  Skip fout
+EndIf
+RequestChoice >ENV:AAja "AmiAgent verwijderen" "Work:AmiAgent (met token) verwijderen?" "Verwijderen" "Annuleren"
+Set AAja `Type ENV:AAja`
+Delete >NIL: ENV:AAja QUIET
+IF NOT "$AAja" EQ "1"
+  Set AAmelding "Geannuleerd; er is niets gewijzigd."
+  Skip fout
+EndIf
+Protect >NIL: Work:AmiAgent/Prefs/Token rwd QUIET
+Delete >NIL: Work:AmiAgent ALL QUIET FORCE
+IF EXISTS Work:AmiAgent.info
+  Delete >NIL: Work:AmiAgent.info QUIET
+EndIf
+IF EXISTS Work:AmiAgent
+  Set AAmelding "Work:AmiAgent kon niet (volledig) verwijderd worden."
+  Skip fout
+EndIf
+Echo "Verwijderd."
+RequestChoice >NIL: "AmiAgent verwijderen" "Work:AmiAgent is verwijderd." "OK"
+Skip einde
+Lab fout
+Echo "GESTOPT: $AAmelding"
+RequestChoice >NIL: "AmiAgent verwijderen" "$AAmelding" "OK"
+Lab einde
