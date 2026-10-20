@@ -52,7 +52,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The security model, and what "
 | `build/amiagent_icons.py` | draws the AmiAgent disk icon (a diskette with a magnifying glass) |
 | `icons/` | the other disk icons in `.info` form: this project's own, drawn in code with `amiga/common/tools/icon.py`, except `amimon.info`, which is upstream's (made by its `tools/mkicon/mkicon.py`) |
 | `LICENSE-amimcp`, `NOTICE-amimcp` | the Apache-2.0 licence text and NOTICE of upstream amimcp at `3145dee`, unchanged |
-| `NOTICE-runtime-newlib.txt` | the notices of the C runtime (newlib) linked into a built agent, verbatim; also put on the disk |
+| `THIRD_PARTY_NOTICES.txt` | all third-party notices for the two executables on the disk (amimcp, the AmigaOS runtime, newlib, libnix, libgcc), verbatim; also put on the disk |
 | `pi/amimcp-ro.py`, `pi/amimcp-lsn`, `pi/lsn-token` | filter, launcher and token generator for the server |
 | `pi/mcp.example.json`, `pi/permissions.example.json` | example Claude Code configuration (no real values) |
 | `tests/test_filter.py` | offline filter test, runs anywhere |
@@ -81,6 +81,6 @@ The helper tools on the disk come from the shared tools: `WiFiVraag`, `Geladen` 
 | `icons/amimon.info` | Apache-2.0, upstream |
 | Scripts, `pi/`, `build/`, `tests/*.py` and `*.sh`, the other icons | MIT, see the repository's [`LICENSE`](../../../LICENSE) |
 | `README.md`, `docs/`, `tests/RESULTATEN-emulator-*.md` | CC BY 4.0, see [`LICENSE-docs`](../../../LICENSE-docs) |
-| C runtime inside a built `amiagent`/`amimon` (newlib, libnix stubs, libgcc) | their own licences: [`NOTICE-runtime-newlib.txt`](NOTICE-runtime-newlib.txt) and [`THIRD_PARTY.md`](../../../THIRD_PARTY.md) |
+| C runtime inside a built `amiagent`/`amimon` (AmigaOS runtime: MIT; newlib: BSD-style; libnix: public domain; libgcc: GPL-3.0 with the Runtime Library Exception) | their own licences: [`THIRD_PARTY_NOTICES.txt`](THIRD_PARTY_NOTICES.txt) and [`THIRD_PARTY.md`](../../../THIRD_PARTY.md) |
 
-**This repository publishes source code only.** Build the disk yourself (see [docs/BUILD.md](docs/BUILD.md)). The built `AmiAgent-Installatie.adf` must **not** be distributed publicly for now: the AmigaOS-specific part of the C runtime has no stated licence yet. See [`THIRD_PARTY.md`](../../../THIRD_PARTY.md), section "The C runtime inside amiagent and amimon".
+**Binary disk.** Since 19-10-2026 the AmigaOS-specific part of the C runtime has a stated licence (MIT, declared by its author). A built `AmiAgent-Installatie.adf` may therefore be passed on, provided it keeps `THIRD_PARTY_NOTICES` at the disk root and `AmiAgent/Docs/LICENSE-amimcp` and `NOTICE-amimcp`. `build-adf.py` puts them there. The two last points raised with the author (a generated two-line file without a header, and a generic "GPL V2" line in the amiga-gcc README) were resolved by him on 20-10-2026; see [`THIRD_PARTY.md`](../../../THIRD_PARTY.md), section "The C runtime inside amiagent and amimon".

@@ -1,6 +1,6 @@
 # Installing AmiAgent
 
-You need the disk image you built yourself with [BUILD.md](BUILD.md) (it is not published, see the README, Licence), a running TCP/IP stack on the Amiga, and a Linux server that runs Claude Code (tested: Raspberry Pi 5). Replace every example address (`192.168.1.70` for the Amiga, `192.168.1.145` for the server) with your own.
+You need the disk image (build it yourself with [BUILD.md](BUILD.md)), a running TCP/IP stack on the Amiga, and a Linux server that runs Claude Code (tested: Raspberry Pi 5). Replace every example address (`192.168.1.70` for the Amiga, `192.168.1.145` for the server) with your own.
 
 ## 1. Server: make the token
 

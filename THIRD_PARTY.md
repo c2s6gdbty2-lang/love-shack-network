@@ -14,7 +14,7 @@
 | **WiFiPi.device** | git `1752e4f` (= Emu68-tools v1.1) + PR #1 (`aa07acb`, by tinic) | **not established.** There is no licence file in the repository, and `src/unit.c` has no header; a few other files carry an MPL-2.0 header. The parent project Emu68 is MPL-2.0. | github.com/michalsc/WiFiPi.device | Wi-Fi driver | **No**, not even the patch; only a reference to the upstream PR | PR #1 build `5973b280…09f5` |
 | libnix (C runtime linked into CRCLijst and the AmiAirPrint builds; its `libstubs.a` library auto-open stubs are also linked into amiagent and amimon) | amiga-gcc (bebbo) | **public domain** (libnix README) | github.com/bebbo/amiga-gcc | runtime | inside the binaries | – |
 | libgcc (support routines) | GCC 6.5.0b (amiga-gcc) | GPL-3.0 with the **GCC Runtime Library Exception** | GCC | runtime, also in amiagent and amimon (`_clz`, `_udivdi3`, `_umoddi3`) | inside the binaries | – |
-| **newlib**, bebbo's AmigaOS fork (prebuilt `libc.a` and `crt0.o` shipped in the amiga-gcc repository) | as shipped with amiga-gcc 6.5.0b; the fork commit is not recorded in the binary | Standard newlib parts: the permissive licences in `COPYING.NEWLIB` (Red Hat BSD-style and others). Amiga-specific parts: **not settled**, see the note below | newlib-cygwin, branch `amiga`, at franke.ms/git/bebbo | C runtime of amiagent and amimon (the upstream Makefile uses amiga-gcc's default runtime) | only inside a built ADF, **not in git**. The notices its standard parts require are in git as `amiga/a500-pistorm/AmiAgent/NOTICE-runtime-newlib.txt`, and on the ADF | – |
+| **newlib**, bebbo's AmigaOS fork (prebuilt `libc.a` and `crt0.o` shipped in the amiga-gcc repository) | as shipped with amiga-gcc 6.5.0b, commit `2f240d1` (17-07-2026) | Standard newlib parts: the permissive licences in `COPYING.NEWLIB` (Red Hat BSD-style and others). AmigaOS-specific parts: **MIT** (some over public-domain libnix code, two also with the Pipeline Associates notice), as declared by the author in newlib-cygwin commit `012fed9b` (19-10-2026); see the note below | newlib-cygwin, branch `amiga`, at franke.ms/git/bebbo | C runtime of amiagent and amimon (the upstream Makefile uses amiga-gcc's default runtime) | only inside a built ADF, not in git. All notices it requires are in git as `amiga/a500-pistorm/AmiAgent/THIRD_PARTY_NOTICES.txt`, and on the ADF | – |
 | Wi-Fi chip firmware | – | proprietary | comes with Emu68 / Raspberry Pi | WiFiPi.device | **Never** | – |
 | Kickstart ROM, Workbench 3.1 | KS 40.63 / 45.66, WB 40.42 | proprietary | your own copy | base system | **Never** | – |
 | Genesis and other commercial software | – | proprietary | – | not used | **Never** | – |
@@ -60,7 +60,7 @@ Two derivative works keep their upstream licence:
 
 ### The C runtime inside amiagent and amimon (checked 18-10-2026)
 
-This matters only for a **binary** release of `AmiAgent-Installatie.adf`. No amiagent binary is in git.
+This matters only for a **binary** release of `AmiAgent-Installatie.adf`. No amiagent binary is in git. Updated 19-10-2026 after the author clarified the licence.
 
 - **Link line**, read from the linker's verbose output and a link map; the map does not change the output: `crt0.o`, then `-lgcc -lc -lstubs -lamiga -lgcc`.
 - **What is pulled in:**
@@ -68,18 +68,22 @@ This matters only for a **binary** release of `AmiAgent-Installatie.adf`. No ami
   - 3 from libgcc;
   - 5 (amiagent) or 2 (amimon) from libnix's `libstubs.a`;
   - **no objects from `libamiga.a`.** That file is a prebuilt binary in the amiga-gcc repository. Judging by its member names, it is libnix's `amiga.lib` replacement plus stubs generated from NDK `.fd` files; its exact build is not documented. It does not end up in the binaries.
-- **Amiga-specific objects** come from `newlib/libc/sys/amigaos` in bebbo's fork: `__dosbase`, `open`, `__nocommandline`, `__stdiowin`, `__mathieeedoubbas`, the IEEE maths wrappers, `malloc.cpp`, `dummy` and `crt0` (which says it is based on libnix's `ncrt0.s`).
+- **Amiga-specific objects** come from `newlib/libc/sys/amigaos` in bebbo's fork: `__dosbase`, `open`, `__nocommandline`, `__stdiowin`, `__mathieeedoubbas`, the IEEE maths wrappers, `malloc.cpp`, `dummy` and `crt0`.
   - **Author:** according to the fork's git history, Stefan "Bebbo" Franke is the only author of the linked versions.
-  - **Notices:** two of them (`__cmpxf2`, `__unorddf2`) carry the Pipeline Associates notice: "Permission is granted to do *anything* you want with this file ... provided this message remains intact". The other 18 have **no licence notice**, and no commit message states one.
-  - **Size:** most are one-line wrappers. `malloc.cpp`, `crt0.c`, `__nocommandline.c` and `open.c` are substantial.
-- **What bebbo has stated** (amiga-gcc README, list added in commit `65aa99b` on 12-02-2023, wording as of commit `8ba28f4`, 28-09-2026):
-  - "newlib: Free Software Foundation, GNU GENERAL PUBLIC LICENSE V2";
-  - about the downloadable SDKs: "All of these libraries are provided under their respective licenses.";
-  - "Various AmigaOS-specific patches have been applied to this version of gcc. None if these changes modify the original copyright in any way. All other changes are published under the terms of the GNU GENERAL PUBLIC LICENSE V2." (verbatim).
-  - That does not match newlib's own `COPYING.NEWLIB`, which has no AmigaOS section and only names LGPL for `*-linux*` targets.
-  - The patch sentence speaks of gcc. Whether "all other changes ... GPL V2" also covers the AmigaOS-specific runtime files, and if so with or without a linking exception, is **not stated**.
-- **Standard newlib objects:** the linked ones fall under permissive terms: Red Hat, UC Berkeley (3-clause, the older "paragraph" wording, and the 1987 acknowledgement wording), FreeBSD, Todd C. Miller, David M. Gay. Several of them require the notice, or an acknowledgement, in the documentation of a binary distribution. `NOTICE-runtime-newlib.txt` contains them verbatim.
-- **Consequence:** if the AmigaOS-specific files were GPL-2.0 without an exception, a binary combining them with Apache-2.0 code could not be distributed under Apache-2.0. Upstream amimcp's own binary releases are built the same way.
-- **The binary ADF must not be distributed publicly** until the author has confirmed the terms for those files, or until amiagent and amimon are rebuilt against libnix (`-noixemul`, public domain; a different binary that needs full retesting).
+  - **Licence:** on 19-10-2026, after our question, he added licence headers in newlib-cygwin commit `012fed9b` ("add copyright"), and an MIT notice for his AmigaOS work to `COPYING.NEWLIB`. His e-mail sums it up as "MIT, MIT (over Public Domain) and Pat Wood Permissive + MIT". The headers in the source match that:
+
+    | Header | Files |
+    |---|---|
+    | MIT, "Copyright (c) 2018-2026" or "1996-2026 Stefan "Bebbo" Franke" | `crt0.c`, `open.c`, `malloc.cpp` |
+    | MIT over public-domain libnix code (no copyright line, authors named) | `__nocommandline.c`, `startup.h`, `__dosbase.c`, `__stdiowin.c`, `dummy.c`, the IEEE wrappers, `__divsi3.c`, `__mulsi3.c`, `__udivsi3.c` |
+    | Pipeline Associates notice kept, plus MIT | `__cmpxf2.c`, `__unorddf2.c` |
+    | MIT over public-domain libnix code, added on 20-10-2026 in newlib-cygwin commit `29f226ee` ("add copyright header"); the same header as `__dosbase.c`. The code itself is unchanged | `__mathieeedoubbas.c` |
+
+  - **Unchanged runtime:** the commit changed comments only, apart from whitespace in `__dosbase.c`. The prebuilt `libc.a` and `crt0.o` in amiga-gcc are unchanged since `2f240d1`, so they are the same objects as in our binaries. `crt0.c` and `__nocommandline.c` later received a change by another contributor (newlib-cygwin `998257d`, 08-09-2026); that change is not in the prebuilt runtime we link.
+- **README brought in line:** on 20-10-2026 the author updated the amiga-gcc README (commit `621b85c`). It now lists newlib as "Red Hat / Cygnus Solutions and contributors, Permissive (BSD/MIT-style mix)" instead of "GNU GENERAL PUBLIC LICENSE V2".
+- **Both questions asked on 19-10-2026 are resolved.** `THIRD_PARTY_NOTICES.txt` was frozen with the v1.0 disk before the answer and still lists them as open questions; its contents are complete, because the new header of `__mathieeedoubbas.c` is the same MIT-over-public-domain text it already reproduces for `__dosbase.c` and the other generated files.
+- **Standard newlib objects:** the linked ones fall under permissive terms: Red Hat, UC Berkeley (3-clause, the older "paragraph" wording, and the 1987 acknowledgement wording), FreeBSD, Todd C. Miller, David M. Gay. Several of them require the notice, or an acknowledgement, in the documentation of a binary distribution.
+- **Compatibility:** MIT, the Pipeline Associates notice, public domain, the BSD-style newlib terms and the GCC Runtime Library Exception all allow combination with Apache-2.0 code in one binary. Their conditions are to keep the notices, which `THIRD_PARTY_NOTICES.txt` does, and not to use the names for endorsement. This is our reading, not legal advice.
+- **A binary ADF may be distributed** if it carries `THIRD_PARTY_NOTICES` (at the disk root) and `AmiAgent/Docs/LICENSE-amimcp` and `NOTICE-amimcp`, as `build-adf.py` does.
 - The source release in git is not affected.
 

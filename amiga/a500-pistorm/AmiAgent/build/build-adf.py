@@ -12,7 +12,7 @@ Sources, all inside this repository (paths relative to this file):
     (type, window, default tool) with its own image from amiagent_icons.py;
     both get the window size of the tested disk;
   - ../patches and the upstream licence as documentation;
-  - NOTICE-runtime-newlib.txt (the newlib notices for the linked C runtime) at the disk root.
+  - THIRD_PARTY_NOTICES.txt (all third-party notices for the two executables) at the disk root.
 
 There is NO token and NO address on the disk: Installeer asks for the token.
 amiagent-rw-test is never put on the disk.
@@ -89,10 +89,10 @@ def main():
     w = lambda rel, b: open(os.path.join(p, rel), "wb").write(b)
     for f in ("Installeer", "Verwijderen", "LeesMij"):
         w(f, text(os.path.join(K, f)))
-    # Notices for the C runtime linked into amiagent/amimon (BSD-style terms require them in the
-    # documentation of a binary distribution). At the disk root, so the installer and its CRC list
-    # stay exactly as tested.
-    w("NOTICE-runtime-newlib", text(os.path.join(K, "NOTICE-runtime-newlib.txt")))
+    # Third-party notices for everything linked into amiagent/amimon (Apache-2.0, MIT, BSD-style:
+    # they must accompany a binary distribution). At the disk root, so the installer and its CRC
+    # list stay exactly as tested.
+    w("THIRD_PARTY_NOTICES", text(os.path.join(K, "THIRD_PARTY_NOTICES.txt")))
     w("AmiAgent/LeesMij", text(os.path.join(K, "LeesMij")))
     for f in ("AmiAgent Start", "AmiAgent Stop"):
         w("AmiAgent/" + f, text(os.path.join(K, f)))

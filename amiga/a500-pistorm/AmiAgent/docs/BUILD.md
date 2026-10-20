@@ -37,10 +37,10 @@ Options:
 - takes `CRCLijst` from A600AirPrint after a hash check;
 - puts `LICENSE-amimcp` and `NOTICE-amimcp` on the disk, after checking that they are identical to `LICENSE` and `NOTICE` of the pinned upstream (Apache-2.0 sections 4(a) and 4(d));
 - takes the drawer icon from A600AirPrint (`Hulp/Lade.info`) and draws the disk icon with `build/amiagent_icons.py` (a diskette with a magnifying glass); the A600AirPrint `Disk.info` serves only as the structure template;
-- puts `NOTICE-runtime-newlib` at the disk root (the notices of the linked C runtime; outside `AmiAgent/`, so the installer and its CRC list stay as tested);
+- puts `THIRD_PARTY_NOTICES` at the disk root (all third-party notices for the two executables; outside `AmiAgent/`, so the installer and its CRC list stay as tested);
 - writes the ADF and reads every file back.
 
-**Keep the ADF to yourself.** You may build and use it, but do not distribute it publicly until the licence of the AmigaOS-specific runtime files is settled (see the README, Licence).
+**Passing the ADF on.** You may distribute a disk built this way, as long as `THIRD_PARTY_NOTICES`, `AmiAgent/Docs/LICENSE-amimcp` and `AmiAgent/Docs/NOTICE-amimcp` stay on it (see the README, Licence).
 
 The ADF image itself is not byte-reproducible, because xdftool stores the build time. Compare the files with `out/MANIFEST.txt` instead.
 
