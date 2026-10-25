@@ -15,7 +15,7 @@ flowchart LR
 
   A500P["Amiga 500 rev. 5<br/>PiStorm / Emu68<br/>AmiTCP 3.0b2"] -- "Wi-Fi WPA2<br/>WiFiPi.device + WirelessManager" --> LAN
   A600["Amiga 600 (68000)<br/>AmiTCP 3.0b2"] -- "Plipbox<br/>(parallel port → Ethernet)" --> LAN
-  A500T["Amiga 500 rev. 6A<br/>TF536"] -- "Wodem: SLIP 19200 baud<br/>over serial → Wi-Fi" --> LAN
+  A500T["Amiga 500 rev. 6A<br/>TF536"] -- "Plipbox (parallel port → Ethernet)<br/>or Wodem: SLIP 19200 baud" --> LAN
   ATARI["Atari 800XL<br/>FujiNet"] -- "Wi-Fi (FujiNet)" --> LAN
   C64["C64 Ultimate"] -- "network" --> LAN
 
@@ -36,6 +36,7 @@ flowchart LR
 | The Amigas print directly | AmiAirPrint renders on the Amiga and sends an IPP `Print-Job` with `image/pwg-raster` straight to the printer. The Pi is not involved. |
 | The Pi is a helper, never a single point of failure for the Amigas | When the Pi is off, the Amigas still boot, network and print. Only Retro: (file sharing) is unavailable. |
 | One network stack per Amiga | AmiTCP 3.0b2 everywhere: no DHCP, fixed addresses, the same `db/` layout. |
+| Plipboxes are wired into the mesh | A Plipbox connects by Ethernet cable (through a small switch) to a Wi-Fi mesh *router* unit. Do not use a Wi-Fi client bridge: on the mesh it translates addresses and proved unreliable, see [Issue 0003](../issues/0003-wifi-client-bridge-mesh.md). |
 | Networking is started by hand | Icons such as *Start Plipbox*, *StartWiFi* or *Wodem Start* start it; startup-sequences are never edited. |
 | File sharing is read-only by default | The Amigas log in as a restricted user on a read-only share (`AmigaLibrary`). Write access is a separate share with its own account, mounted only when needed. |
 | Platform-native print emulation for 8-bit machines | FujiNet and the Ultimate emulate a printer and produce a PDF or PNG. A watcher on the Pi fetches it and passes it to CUPS. |

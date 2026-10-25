@@ -25,7 +25,7 @@ An Amiga 500 rev. 5 with a PiStorm (Raspberry Pi 3A+ running Emu68):
 | Accelerator | PiStorm with a Raspberry Pi 3A+, Emu68 |
 | Video | Framethrower ⟨**TODO:** model, firmware and connection still to be documented⟩ |
 | Kickstart / Workbench | Kickstart 45.66 (exec 45.25) with Workbench 3.1 modules (40.42); printer.device 39.6 |
-| Network | the Pi 3A+'s Wi-Fi chip through `wifipi.device`. A Plipbox on the parallel port is the reserve route (PlipNet 1.1 with NOBURST, [Issue 0002](../../docs/issues/0002-plipbox-noburst-pistorm.md)). |
+| Network | the Pi 3A+'s Wi-Fi chip through `wifipi.device`. A Plipbox on the parallel port is the reserve route (PlipNet 1.1 with NOBURST, [Issue 0002](../../docs/issues/0002-plipbox-noburst-pistorm.md)). Since 25-10-2026 that Plipbox unit is in use on the A500 TF536. |
 | Storage | `Work:` partition for the packages ⟨**TODO:** storage controller details⟩ |
 | Floppy | Gotek, used to transfer the ADFs |
 

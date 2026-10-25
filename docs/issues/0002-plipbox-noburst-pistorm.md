@@ -41,5 +41,5 @@ The Plipbox works as a fallback network next to Wi-Fi, which stays the main conn
   - *Plipbox Start* refuses while `wifipi.device` is in memory.
   - *StartWiFi* refuses while PlipNet is active.
 - **Slower transfers.** NOBURST is slower than burst, but it is sufficient for normal RetroMount use.
-- **Bridge on the Ethernet side.** In this network the box's Ethernet link goes through a wireless Ethernet bridge. The bridge translates hardware addresses and adds some latency.
+- **Bridge on the Ethernet side.** At the time, the box's Ethernet link went through a wireless Ethernet bridge, which translates hardware addresses and adds latency. That bridge proved unreliable and was replaced by a cable, see [Issue 0003](0003-wifi-client-bridge-mesh.md).
 - **Not every PiStorm setup is fixed.** Upstream report cnvogelg/plipbox#19 describes a PiStorm setup where NOBURST did not help. Reports #3 and #16 recommend or confirm NOBURST for fast CPUs.
