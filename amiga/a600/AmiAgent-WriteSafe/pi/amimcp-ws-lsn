@@ -1,0 +1,12 @@
+#!/bin/bash
+# amimcp-ws-lsn - start de WRITE-SAFE-MCP-server (amimcp-ws.py). Gebruikt hetzelfde token als de
+# READONLY-route (alleen lezen). Nog niet geregistreerd in Claude Code.
+set -e
+CONF="$HOME/.config/amiagent-lsn"
+[[ "${LSN_MACHINE:-}" =~ ^[a-z0-9]+$ ]] || { echo "amimcp-ws-lsn: LSN_MACHINE ontbreekt" >&2; exit 2; }
+TF="$CONF/token-$LSN_MACHINE"
+[ -r "$TF" ] || { echo "amimcp-ws-lsn: $TF ontbreekt" >&2; exit 2; }
+[ "$(stat -c %a "$TF")" = 600 ] || { echo "amimcp-ws-lsn: $TF moet modus 600 hebben" >&2; exit 2; }
+export AMIGA_TOKEN="$(cat "$TF")"
+export LSN_AUDIT_LOG="${LSN_AUDIT_LOG:-$HOME/.local/state/amiagent-lsn/audit-ws-$LSN_MACHINE.log}"
+exec python3 -I "$(dirname "$(readlink -f "$0")")/amimcp-ws.py"

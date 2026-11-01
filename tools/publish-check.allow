@@ -5,3 +5,5 @@ CRED	AmiAgent/Installeer	Line 97 is a comment about the protection bits of the t
 CRED	AmiAgent/tests/lsntest.py	TOKEN/token are variables holding the generated test token (tests/testtoken, git-ignored), one deliberately wrong literal for the refusal test, and the sandbox smbd test password. No real secret. Checked 18-10-2026.
 CRED	AmiAgent-Installatie.adf	Contains Installeer (see the comment above). The installer asks for the token; no token is on the disk. Checked 18-10-2026.
 WB	AmiAgent-Installatie.adf	Names such as assign, icon.library and MultiView appear only inside the agent binary and script texts. The xdftool listing (18-10-2026) shows 27 own files and no Workbench files.
+IP	pi/mcp-amiga-ws.example.json	Fictive example address 192.168.1.60 from the documentation range used in AmiAgent docs; not a real host.
+IP	Prefs/WriteSafe.example	Fictive example address 192.168.1.145; the same example as AmiAgent docs/SECURITY.md, not a real host.

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "amiga-ws": {
+      "type": "stdio",
+      "command": "/path/to/AmiAgent-WriteSafe/pi/amimcp-ws-lsn",
+      "args": [],
+      "env": {
+        "LSN_MACHINE": "a600",
+        "AMIGA_HOST": "192.168.1.60",
+        "LSN_ALLOWED_HOSTS": "192.168.1.60",
+        "LSN_UPSTREAM_DIR": "/path/to/amimcp/server",
+        "LSN_WS_STAGE": "/path/to/share/WriteSafe/a600",
+        "LSN_WS_OUTBOX": "/path/to/outbox"
+      }
+    }
+  }
+}

@@ -1,0 +1,142 @@
+--- a/agent/amiagent.c	2026-11-01 17:02:11.889670716 +0100
++++ b/agent/amiagent.c	2026-11-01 17:02:22.470013177 +0100
+@@ -152,7 +152,11 @@
+  *     OpenFromLock), never a handler such as CON:, SER: or PIPE:.
+  *   - local ARexx port: ACTIVATEWINDOW, ENTERTEXT/TYPE, KEY, TASKPRI refused.
+  * ------------------------------------------------------------------ */
++#ifdef AMIAGENT_WRITESAFE
++#define AMIAGENT_LSN "lsn1 WRITE-SAFE"
++#else
+ #define AMIAGENT_LSN "lsn1 READONLY"
++#endif
+ static const struct { const char *word; const char *cmd; } ro_cmds[] = {
+     { "Avail",      "C:Avail" },
+     { "Version",    "C:Version" },
+@@ -921,12 +925,23 @@
+  * a filesystem qualifies: Lock() fails on handlers like CON:, RAW:, SER:,
+  * PAR:, PRT: or PIPE: (which would open a window or consume data), and a
+  * directory is refused before anything is opened. */
++#ifdef AMIAGENT_WRITESAFE
++static int ws_noread(BPTR lock);
++static int ws_info(struct buf *b);
++#endif
+ static BPTR ro_open(const char *path)
+ {
+ #ifdef AMIAGENT_READONLY
+     BPTR lock = Lock((STRPTR)path, ACCESS_READ), fh;
+     struct FileInfoBlock *fib;
+     if (!lock) return 0;
++#ifdef AMIAGENT_WRITESAFE
++    if (ws_noread(lock)) {
++        UnLock(lock);
++        SetIoErr(ERROR_READ_PROTECTED);
++        return 0;
++    }
++#endif
+     fib = (struct FileInfoBlock *)AllocDosObject(DOS_FIB, NULL);
+     if (!fib || !Examine(lock, fib) || fib->fib_DirEntryType >= 0) {
+         if (fib) FreeDosObject(DOS_FIB, fib);
+@@ -1201,6 +1216,9 @@
+ 
+     sprintf(line, "agent=amiagent %s\n", AMIAGENT_VERSION); ok &= buf_str(&b, line);
+     sprintf(line, "build=%s\n", AMIAGENT_LSN); ok &= buf_str(&b, line);
++#ifdef AMIAGENT_WRITESAFE
++    ok &= ws_info(&b);
++#endif
+     sprintf(line, "kickstart=%ld.%ld\n", (long)sb->LibNode.lib_Version,
+             (long)sb->LibNode.lib_Revision); ok &= buf_str(&b, line);
+     sprintf(line, "dos.library=%ld\n",
+@@ -2885,6 +2903,9 @@
+     case CMD_AREXX:   return "AREXX";
+     case CMD_REXXPORTS: return "REXXPORTS";
+     case CMD_GETRANGE:  return "GETRANGE";
++#ifdef AMIAGENT_WRITESAFE
++    case 0x40:          return "COPYIN";
++#endif
+     default:          return "?";
+     }
+ }
+@@ -2964,6 +2985,10 @@
+  * Connection loop
+  * ------------------------------------------------------------------ */
+ 
++#ifdef AMIAGENT_WRITESAFE
++#include "writesafe.c"
++#endif
++
+ /* Read one frame header plus up to `prefetch` bytes of its body. PUT needs the
+  * prefetch so it can see the path before deciding where to stream the rest. */
+ static int read_frame(int sock, UBYTE *code, ULONG *len, UBYTE *body, ULONG prefetch, ULONG *got)
+@@ -3069,6 +3094,9 @@
+         case CMD_AREXX: do_arexx(sock, body, len); break;
+         case CMD_REXXPORTS: do_rexxports(sock); break;
+         case CMD_GETRANGE: do_getrange(sock, body, len); break;
++#ifdef AMIAGENT_WRITESAFE
++        case CMD_COPYIN: do_copyin(sock, body, len, client); break;
++#endif
+         case CMD_INPUT: do_input(sock, body, len); break;
+         case CMD_BREAK: do_break(sock); break;
+         default:       send_err(sock, "unknown command"); break;
+@@ -3226,7 +3254,12 @@
+  * Entry point
+  * ------------------------------------------------------------------ */
+ 
++#ifdef AMIAGENT_WRITESAFE
++static const char *TEMPLATE = "PORT/N,TLSPORT/N,TOKEN/K,QUIET/S,VERBOSE/S,TOKENFILE/K,"
++    "WRITEROOT/K,SRCROOT/K,CLIENT/K,WRITEMIN/K/N,WRITEMAX/K/N,MAXKB/K/N,NOREAD/K,TESTHOOK/K";
++#else
+ static const char *TEMPLATE = "PORT/N,TLSPORT/N,TOKEN/K,QUIET/S,VERBOSE/S,TOKENFILE/K";
++#endif
+ 
+ struct args {
+     LONG *port;
+@@ -3235,6 +3268,11 @@
+     LONG quiet;      /* accepted and ignored: quiet is now the default */
+     LONG verbose;
+     STRPTR tokenfile; /* LSN 0003 */
++#ifdef AMIAGENT_WRITESAFE
++    STRPTR writeroot, srcroot, client;
++    LONG *writemin, *writemax, *maxkb;
++    STRPTR noread, testhook;
++#endif
+ };
+ 
+ /* LSN 0003: read the token from a file instead of the command line, so it
+@@ -3396,6 +3434,27 @@
+             self->pr_WindowPtr = oldwinptr;
+             return RETURN_FAIL;
+         }
++#ifdef AMIAGENT_WRITESAFE
++#ifdef AMIAGENT_WS_TEST
++        if (a.testhook) { strncpy(g_wshook, (const char *)a.testhook, sizeof g_wshook - 1); }
++#endif
++        if (a.writeroot) {
++            const char *why;
++            if (!g_have_token) why = "a token is required";
++            else why = ws_arm((const char *)a.writeroot, (const char *)a.srcroot, (const char *)a.client,
++                              a.writemin ? *a.writemin : 0, a.writemax ? *a.writemax : 0,
++                              a.maxkb ? *a.maxkb : 0, (const char *)a.noread);
++            if (why) {
++                char msg[260];
++                ws_shutdown();
++                sprintf(msg, "amiagent-ws: write mandate refused: %.200s", why);
++                FreeArgs(rda);
++                fail("%s", msg);
++                self->pr_WindowPtr = oldwinptr;
++                return RETURN_FAIL;
++            }
++        }
++#endif
+         FreeArgs(rda);
+     }
+ #ifdef AMIAGENT_SSL
+@@ -3550,6 +3609,9 @@
+     board_close();
+ 
+ out:
++#ifdef AMIAGENT_WRITESAFE
++    ws_shutdown();
++#endif
+     rexxhost_close();
+     input_close();
+     if (CyberGfxBase) CloseLibrary(CyberGfxBase);

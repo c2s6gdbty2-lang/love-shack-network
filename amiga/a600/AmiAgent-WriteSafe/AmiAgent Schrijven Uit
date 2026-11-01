@@ -1,0 +1,50 @@
+; $VER: AmiAgent Schrijven Uit 1.1 (2.11.2026) The Love Shack Network
+; Beeindigt de schrijfsessie en herstelt de READONLY-agent. Werkt vanuit Workbench
+; (IconX) en vanuit een Shell, ongeacht de huidige map.
+FailAt 21
+Echo "AmiAgent Schrijven Uit"
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF WARN
+  Skip geenws
+EndIf
+Echo "WRITE-SAFE stoppen..."
+Set AAnr `Status COMMAND=Work:AmiAgent/amiagent-ws`
+Break $AAnr C
+Set AAi 0
+Lab wacht
+Wait 1
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF WARN
+  Skip gestopt
+EndIf
+Set AAi `Eval $AAi + 1`
+IF NOT $AAi GE 15 VAL
+  Skip wacht BACK
+EndIf
+Echo "FOUT: amiagent-ws reageert niet op Ctrl-C."
+RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE reageert niet.*N*NDe agent wacht waarschijnlijk op de netwerkshare en draait nog.*NDe READONLY-agent is NIET gestart.*N*NKlik later opnieuw op dit pictogram, of herstart de Amiga:*Nhet mandaat vervalt daarmee." "OK"
+Skip einde
+Lab geenws
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  Echo "Er liep geen schrijfsessie; de READONLY-agent draait."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "Er liep geen schrijfsessie.*N*NDe Amiga draait al met de normale READONLY-agent." "OK"
+  Skip einde
+EndIf
+Lab gestopt
+Echo "READONLY-agent starten..."
+Run <NIL: >T:AmiAgent.log Work:AmiAgent/amiagent TOKENFILE=Work:AmiAgent/Prefs/Token
+Wait 5
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  Skip goed
+EndIf
+Echo "FOUT: de READONLY-agent start niet."
+RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is gestopt, maar de READONLY-agent start niet.*N*NSchrijven is niet mogelijk. Controleer het netwerk*Nen start het pictogram AmiAgent Start." "OK"
+Skip einde
+Lab goed
+Echo "WRITE-SAFE is uitgeschakeld."
+Echo "READONLY-agent luistert op poort 7846."
+RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is uitgeschakeld.*N*NDe Amiga draait weer met de normale READONLY-agent.*N*NSchrijven via MCP is niet meer toegestaan." "OK"
+Echo "Dit venster mag je sluiten: de READONLY-agent blijft actief."
+Lab einde

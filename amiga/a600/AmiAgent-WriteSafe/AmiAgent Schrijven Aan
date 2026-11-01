@@ -1,0 +1,99 @@
+; $VER: AmiAgent Schrijven Aan 1.1 (2.11.2026) The Love Shack Network
+; Eenmalig schrijfmandaat, alleen lokaal te geven. Werkt vanuit Workbench (IconX)
+; en vanuit een Shell, ongeacht de huidige map. Het mandaat bestaat alleen in het
+; geheugen en kan niet verlengd worden. Instellingen: Work:AmiAgent/Prefs/WriteSafe.
+FailAt 21
+Echo "AmiAgent Schrijven Aan"
+IF NOT EXISTS Work:AmiAgent/amiagent-ws
+  Echo "FOUT: Work:AmiAgent/amiagent-ws ontbreekt."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE niet gestart.*N*NWork:AmiAgent/amiagent-ws ontbreekt.*NEr is niets gewijzigd." "OK"
+  Skip einde
+EndIf
+IF NOT EXISTS Work:AmiAgent/Prefs/WriteSafe
+  Echo "FOUT: Work:AmiAgent/Prefs/WriteSafe ontbreekt."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE niet gestart.*N*NWork:AmiAgent/Prefs/WriteSafe ontbreekt.*NEr is niets gewijzigd." "OK"
+  Skip einde
+EndIf
+Work:AmiAgent/C/Geladen bsdsocket.library
+IF WARN
+  Echo "FOUT: er draait nog geen netwerk."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE niet gestart.*N*NEr draait nog geen netwerk. Start eerst het netwerk.*NEr is niets gewijzigd." "OK"
+  Skip einde
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  Echo "WRITE-SAFE is al actief; tweede activering geweigerd."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is al actief.*N*NEen mandaat is eenmalig en kan niet verlengd worden.*NBeeindig het eerst via het pictogram*NAmiAgent Schrijven Uit." "OK"
+  Skip einde
+EndIf
+Set AAja `RequestChoice "AmiAgent WRITE-SAFE" "Schrijfmandaat geven?*N*NClaude mag nieuwe bestanden in Work:Inbox plaatsen:*Nmaximaal 30 minuten, 20 bestanden, elk tot 1024 KB.*NOverschrijven, Shell en systeemmappen blijven verboden." "Ja|Nee"`
+IF NOT "$AAja" EQ "1"
+  Echo "Geen mandaat gegeven; er is niets gewijzigd."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "Geen mandaat gegeven.*N*NEr is niets gewijzigd." "OK"
+  Skip einde
+EndIf
+; opnieuw: er kan tijdens de vraag een tweede sessie gestart zijn
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  Echo "WRITE-SAFE is al actief; tweede activering geweigerd."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is al actief.*N*NEen mandaat is eenmalig en kan niet verlengd worden.*NBeeindig het eerst via het pictogram*NAmiAgent Schrijven Uit." "OK"
+  Skip einde
+EndIf
+IF NOT EXISTS Work:AmiAgent/Log
+  MakeDir Work:AmiAgent/Log
+EndIf
+IF NOT EXISTS Work:Inbox
+  MakeDir Work:Inbox
+EndIf
+Set AAwas 0
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  Skip gestopt
+EndIf
+Set AAwas 1
+Echo "READONLY-agent stoppen..."
+Set AAnr `Status COMMAND=Work:AmiAgent/amiagent`
+Break $AAnr C
+Set AAi 0
+Lab wacht
+Wait 1
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  Skip gestopt
+EndIf
+Set AAi `Eval $AAi + 1`
+IF NOT $AAi GE 15 VAL
+  Skip wacht BACK
+EndIf
+Echo "FOUT: READONLY-agent stopt niet; WRITE-SAFE niet gestart."
+RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE niet gestart.*N*NDe READONLY-agent reageert niet op Ctrl-C.*NDe READONLY-agent draait nog; er loopt geen schrijfsessie." "OK"
+Skip einde
+Lab gestopt
+Echo "WRITE-SAFE starten..."
+Execute Work:AmiAgent/Prefs/WriteSafe
+Wait 6
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  Skip actief
+EndIf
+Lab mislukt
+Echo "FOUT: WRITE-SAFE is geweigerd of niet gestart."
+IF NOT $AAwas EQ 1 VAL
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is geweigerd of niet gestart.*NStart dit script vanuit een Shell om de reden te zien.*N*NEr draait geen agent. De READONLY-agent draaide*Nook hiervoor niet: start zo nodig AmiAgent Start." "OK"
+  Skip einde
+EndIf
+Echo "READONLY-agent herstellen..."
+Run <NIL: >T:AmiAgent.log Work:AmiAgent/amiagent TOKENFILE=Work:AmiAgent/Prefs/Token
+Wait 5
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is geweigerd of niet gestart.*NStart dit script vanuit een Shell om de reden te zien.*N*NOok de READONLY-agent start niet.*NEr draait mogelijk geen agent: start AmiAgent Start." "OK"
+  Skip einde
+EndIf
+RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is geweigerd of niet gestart.*NStart dit script vanuit een Shell om de reden te zien.*N*NDe READONLY-agent draait weer; schrijven is niet mogelijk." "OK"
+Skip einde
+Lab actief
+Echo "WRITE-SAFE is actief."
+RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is actief.*N*NSchrijven is tijdelijk toegestaan naar:*NWork:Inbox/*N*NMaximaal 20 schrijfacties, gedurende maximaal 30 minuten.*N*NKlik op OK om deze melding te sluiten.*NHet sluiten van deze melding beeindigt WRITE-SAFE niet.*N*NSchrijven kan eerder worden beeindigd via het pictogram*NAmiAgent Schrijven Uit." "OK"
+Echo "Dit venster mag je sluiten: WRITE-SAFE blijft actief."
+Lab einde

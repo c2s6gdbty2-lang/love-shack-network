@@ -165,3 +165,7 @@ Details: [`tests/a600/`](../../tests/a600/). Photos: [`images/a600/`](../../imag
 | The two prefs programs | Official Aminet 1.2 files, with one byte changed to request bsdsocket V3 |
 
 See [`printing/amiairprint/`](../../printing/amiairprint/).
+
+## Other packages
+
+[AmiAgent WRITE-SAFE](AmiAgent-WriteSafe/): place new files in `Work:Inbox` from an AI assistant, after a local yes/no. Optional and separate from the AirPrint package.

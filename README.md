@@ -51,6 +51,8 @@ The two lines at the top are the project's guiding principles. In practice they 
 
 **AI-assisted diagnostics.** [AmiAgent](amiga/a500-pistorm/AmiAgent/) lets Claude Code look at the real A500 PiStorm through MCP: system information, files, screenshots. The agent is compiled read-only, so it cannot change anything. ✅ on the real A500 for read-only diagnostics; the agent's own write refusal without the filter is 🧪 emulator-tested.
 
+**Local-permission file placement.** [AmiAgent WRITE-SAFE](amiga/a600/AmiAgent-WriteSafe/) is an optional second binary: after someone says yes at the machine, the assistant may place new files in one folder for a limited time. Proven on the real A600; the read-only agent stays the default.
+
 See [`docs/AmigaShare.md`](docs/AmigaShare.md) for the shared read/write volume, [`docs/architecture/`](docs/architecture/) for the network architecture, [`docs/hardware/`](docs/hardware/) for each machine and [`docs/issues/`](docs/issues/) for known technical issues.
 
 ## Computerfluid Computing
@@ -96,6 +98,7 @@ docs/architecture/   network architecture, diagrams, address plan
 docs/hardware/       one page per machine
 docs/issues/         known technical issues (analysis, no unapproved fixes)
 amiga/a600/          A600AirPrint package (tested files, network details as tokens) + guide
+                     AmiAgent-WriteSafe/ local-permission file placement (optional, separate binary)
 amiga/a500-pistorm/  AirPrintPS package + guide (Wi-Fi and RetroMount documented);
                      AmiAgent/ read-only AI diagnostics (amiagent patches, filter, installer, tests)
 amiga/a500-tf536/    status only (not in this release)

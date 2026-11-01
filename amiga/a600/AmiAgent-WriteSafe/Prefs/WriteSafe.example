@@ -1,0 +1,1 @@
+Run <NIL: >T:AmiAgent-ws.log Work:AmiAgent/amiagent-ws TOKENFILE=Work:AmiAgent/Prefs/Token WRITEROOT=Work:Inbox SRCROOT=AmigaShare:WriteSafe/a600 CLIENT=192.168.1.145 WRITEMIN=30 WRITEMAX=20 MAXKB=1024 NOREAD=Work:AmigaShare/Prefs
