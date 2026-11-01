@@ -206,7 +206,7 @@ DEALINGS IN THE SOFTWARE.
 ============================================================================
 
 ----------------------------------------------------------------------------
-3a. Files without their own notice (atoi, calloc, callocr, malignr, closer, readr, writer, lseekr, fstatr, isattyr, impure, envlock, localeconv, mbtowc_r, mem*/str* functions, wcrtomb, wcsnrtombs, wcsrtombs, wctomb_r, s_frexp, realloc). COPYING.NEWLIB, section 1:
+3a. Files without their own notice (atoi, calloc, callocr, malignr, closer, readr, writer, lseekr, fstatr, isattyr, impure, envlock, localeconv, mbtowc_r, memchr, memcmp, memmove, str* functions, wcrtomb, wcsnrtombs, wcsrtombs, wctomb_r, s_frexp, realloc). COPYING.NEWLIB, section 1:
 
 (1) Red Hat Incorporated
 
@@ -406,6 +406,21 @@ WARRANTY.  IN PARTICULAR, NEITHER THE AUTHOR NOR AT&T MAKES ANY
 REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
 OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
 
+3i. memcpy, memset (m68k assembly versions, machine/m68k). Added 02-11-2026:
+
+Copyright (c) 2007 mocom software GmbH & Co KG)
+
+The authors hereby grant permission to use, copy, modify, distribute,
+and license this software and its documentation for any purpose, provided
+that existing copyright notices are retained in all copies and that this
+notice is included verbatim in any distributions. No written agreement,
+license, or royalty fee is required for any of the authorized uses.
+Modifications to this software may be copyrighted by their authors
+and need not follow the licensing terms described here, provided that
+the new terms are clearly indicated on the first page of each file where
+they apply.
+
+----------------------------------------------------------------------------
 ============================================================================
 4. libnix stubs and libgcc
 ============================================================================
