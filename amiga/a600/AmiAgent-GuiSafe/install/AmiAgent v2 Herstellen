@@ -1,0 +1,35 @@
+; $VER: AmiAgent v2 Herstellen 2.0 (9.11.2026) The Love Shack Network - A600
+; Zet de vorige installatie terug uit Work:AmiAgent/Backup-v1 en verwijdert de v2-bestanden.
+; Prefs en binaries worden niet aangeraakt. Backup-v1 blijft staan.
+FailAt 21
+Set W "Work:AmiAgent"
+IF NOT EXISTS "$W/Backup-v1/Lade-AmiAgent.bak"
+  Set M "Geen back-up (Work:AmiAgent/Backup-v1)."
+  Skip fout
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF NOT WARN
+  Set M "GUI-SAFE is actief. Eerst Bedienen Uit."
+  Skip fout
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  Set M "WRITE-SAFE is actief. Eerst Schrijven Uit."
+  Skip fout
+EndIf
+Set AAja `RequestChoice "AmiAgent v2" "Vorige installatie terugzetten?*NSluit eerst het AmiAgent-venster." "Herstellen|Annuleren"`
+IF NOT "$AAja" EQ "1"
+  Set M "Geannuleerd; er is niets gewijzigd."
+  Skip fout
+EndIf
+Copy "$W/Backup-v1/AmiAgent Bedienen Aan" "$W/Backup-v1/AmiAgent Bedienen Uit" "$W/Backup-v1/GSTest Mount" "$W/Backup-v1/AmiAgent Schrijven Aan" "$W" QUIET
+Copy "$W/Backup-v1/Lade-AmiAgent.bak" Work:AmiAgent.info QUIET
+Copy "$W/Backup-v1/#?.info" "$W" QUIET
+Delete >NIL: "$W/GSTest Stop" "$W/GSTest Stop.info" "$W/GUI-SAFE Status" "$W/GUI-SAFE Status.info" QUIET
+Delete >NIL: "$W/READONLY" "$W/READONLY.info" "$W/WRITE-SAFE" "$W/WRITE-SAFE.info" "$W/GUI-SAFE" "$W/GUI-SAFE.info" QUIET
+Delete >NIL: "$W/GSTest Mount.info" "$W/AmiAgent Bedienen Aan.info" "$W/AmiAgent Bedienen Uit.info" "$W/Versie-v2" QUIET
+RequestChoice >NIL: "AmiAgent v2" "Vorige installatie is terug.*NBackup-v1 blijft staan (mag later weg)." "OK"
+Skip einde
+Lab fout
+RequestChoice >NIL: "AmiAgent v2" "NIET hersteld.*N*N$M" "OK"
+Lab einde

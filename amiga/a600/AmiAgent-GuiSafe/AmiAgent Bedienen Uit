@@ -1,0 +1,58 @@
+; $VER: AmiAgent Bedienen Uit 2.0 (9.11.2026) The Love Shack Network - AmiAgent A600 v2
+; Directe lokale stop van GUI-SAFE (Ctrl-C). De agent geeft de volumes vrij;
+; daarna moet de READONLY-agent terugkeren. Dit script controleert dat en start
+; READONLY zelf als die na 10 s nog niet draait.
+FailAt 21
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF WARN
+  Skip geengs
+EndIf
+Set AAnr `Status COMMAND=Work:AmiAgent/amiagent-gs`
+Set AAi 0
+Lab breek
+Break $AAnr C
+Wait 1
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF WARN
+  Skip gsweg
+EndIf
+Set AAi `Eval $AAi + 1`
+IF NOT $AAi GE 15 VAL
+  Skip breek BACK
+EndIf
+RequestChoice >NIL: "AmiAgent GUI-SAFE" "GUI-SAFE reageert niet op Ctrl-C.*N*NKies later opnieuw Bedienen Uit, of schakel de A600 uit:*Nde beveiliging en het mandaat vervallen dan." "OK"
+Skip einde
+Lab geengs
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  RequestChoice >NIL: "AmiAgent GUI-SAFE" "Er liep geen GUI-SAFE-sessie.*N*NDe READONLY-agent draait." "OK"
+  Skip einde
+EndIf
+Lab gsweg
+Set AAi 0
+Lab wachtro
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  Skip roaan
+EndIf
+Wait 1
+Set AAi `Eval $AAi + 1`
+IF NOT $AAi GE 10 VAL
+  Skip wachtro BACK
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  RequestChoice >NIL: "AmiAgent GUI-SAFE" "GUI-SAFE is gestopt.*NWRITE-SAFE is actief; READONLY niet gestart." "OK"
+  Skip einde
+EndIf
+Run <NIL: >T:AmiAgent.log Work:AmiAgent/amiagent TOKENFILE=Work:AmiAgent/Prefs/Token
+Wait 5
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  Skip roaan
+EndIf
+RequestChoice >NIL: "AmiAgent GUI-SAFE" "GUI-SAFE is gestopt, maar de READONLY-agent start niet.*N*NControleer het netwerk en kies AmiAgent Start." "OK"
+Skip einde
+Lab roaan
+RequestChoice >NIL: "AmiAgent GUI-SAFE" "GUI-SAFE is uitgeschakeld.*N*NSchijven zijn vrijgegeven; de READONLY-agent draait weer.*NGSTest: blijft gekoppeld tot GSTest Stop." "OK"
+Lab einde

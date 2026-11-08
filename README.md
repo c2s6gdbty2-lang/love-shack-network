@@ -53,6 +53,8 @@ The two lines at the top are the project's guiding principles. In practice they 
 
 **Local-permission file placement.** [AmiAgent WRITE-SAFE](amiga/a600/AmiAgent-WriteSafe/) is an optional second binary: after someone says yes at the machine, the assistant may place new files in one folder for a limited time. Proven on the real A600; the read-only agent stays the default.
 
+**Local-permission program control (not released).** [AmiAgent A600 v2 / GUI-SAFE](amiga/a600/AmiAgent-GuiSafe/) puts READONLY, WRITE-SAFE and GUI-SAFE in one Workbench drawer. After a local yes, the assistant may start and operate one allow-listed program (TextEngine 5.2) and save only into an isolated test share. ✅ physically accepted on the real A600 (7/7 PASS, 08-11-2026), but **not yet fully security-validated**: the `CLIENT` address restriction is not enforced yet ([Issue 0004](docs/issues/0004-guisafe-client-not-enforced.md)). No release until that is fixed and tested.
+
 See [`docs/AmigaShare.md`](docs/AmigaShare.md) for the shared read/write volume, [`docs/architecture/`](docs/architecture/) for the network architecture, [`docs/hardware/`](docs/hardware/) for each machine and [`docs/issues/`](docs/issues/) for known technical issues.
 
 ## Computerfluid Computing
@@ -99,6 +101,7 @@ docs/hardware/       one page per machine
 docs/issues/         known technical issues (analysis, no unapproved fixes)
 amiga/a600/          A600AirPrint package (tested files, network details as tokens) + guide
                      AmiAgent-WriteSafe/ local-permission file placement (optional, separate binary)
+                     AmiAgent-GuiSafe/ AmiAgent A600 v2: one drawer for three modes, GUI-SAFE (not released)
 amiga/a500-pistorm/  AirPrintPS package + guide (Wi-Fi and RetroMount documented);
                      AmiAgent/ read-only AI diagnostics (amiagent patches, filter, installer, tests)
 amiga/a500-tf536/    status only (not in this release)

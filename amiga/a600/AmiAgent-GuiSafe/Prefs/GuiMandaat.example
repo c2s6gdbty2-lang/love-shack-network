@@ -1,0 +1,11 @@
+# GuiMandaat - local GUI-SAFE mandate (protection r). Example; 192.168.1.145 is a fictive address.
+APP=TextEngine
+ALLOW=Work:AmiAgent/Prefs/GuiAllow
+TESTDIR=GSTest:Tests/A600
+CLIENT=192.168.1.145
+GUIMIN=15
+GUIMAX=300
+IDLESEC=120
+PROTECT=Work,Games
+EXEMPT=Ram Disk,GSTest
+NOTIFY=SYS:S,SYS:C,ENVARC:

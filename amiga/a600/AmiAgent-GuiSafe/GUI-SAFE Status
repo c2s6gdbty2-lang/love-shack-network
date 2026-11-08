@@ -1,0 +1,47 @@
+; $VER: GUI-SAFE Status 2.0 (9.11.2026) The Love Shack Network - AmiAgent A600 v2
+; Alleen lezen: toont welke agentmodus draait, de koppelingen en de laatste meldingen.
+FailAt 21
+Echo "AmiAgent - modus en koppelingen"
+Echo "-------------------------------"
+Set AAmod "geen agent actief"
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF NOT WARN
+  Set AAmod "READONLY (standaard)"
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  Set AAmod "WRITE-SAFE"
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF NOT WARN
+  Set AAmod "GUI-SAFE"
+EndIf
+Echo "Agent:       $AAmod"
+Assign >NIL: EXISTS AmigaShare:
+IF WARN
+  Echo "AmigaShare:  niet gekoppeld"
+Else
+  Echo "AmigaShare:  gekoppeld"
+EndIf
+IF EXISTS ENV:smbfs-process/GSTESTSMB
+  Echo "GSTest:      gekoppeld (geregistreerd)"
+Else
+  Assign >NIL: EXISTS GSTest:
+  IF WARN
+    Echo "GSTest:      niet gekoppeld"
+  Else
+    Echo "GSTest:      gekoppeld ZONDER registratie (verdwijnt na uitschakelen)"
+  EndIf
+EndIf
+IF EXISTS RAM:AmiAgent-gs.log
+  Echo ""
+  Echo "Lopende GUI-SAFE-sessie (RAM:AmiAgent-gs.log):"
+  Type RAM:AmiAgent-gs.log
+EndIf
+IF EXISTS T:AmiAgent-gs.out
+  Echo ""
+  Echo "Laatste GUI-SAFE-meldingen (T:AmiAgent-gs.out):"
+  Type T:AmiAgent-gs.out
+EndIf
+Echo ""
+Echo "Volledig auditlog: Work:AmiAgent/Log/gui.log. Sluit dit venster met het sluitgadget."

@@ -1,0 +1,72 @@
+; $VER: AmiAgent v2 Installeren 2.0 (9.11.2026) The Love Shack Network - A600
+; Installeert AmiAgent A600 v2 vanaf deze map (AmigaShare:AmiAgent-v2/a600) in Work:AmiAgent.
+; Eerst back-up van alle bestanden die vervangen worden naar Work:AmiAgent/Backup-v1.
+; Prefs, binaries en de overige bestanden blijven onaangeroerd. Terug: AmiAgent v2 Herstellen.
+FailAt 21
+Set B "AmigaShare:AmiAgent-v2/a600"
+Set W "Work:AmiAgent"
+Echo "AmiAgent A600 v2 installeren"
+IF NOT EXISTS "$W/amiagent"
+  Set M "Work:AmiAgent/amiagent ontbreekt; dit is geen bestaande installatie."
+  Skip fout
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF NOT WARN
+  Set M "GUI-SAFE is actief. Eerst Bedienen Uit."
+  Skip fout
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  Set M "WRITE-SAFE is actief. Eerst Schrijven Uit."
+  Skip fout
+EndIf
+IF EXISTS "$W/Backup-v1"
+  Set M "Work:AmiAgent/Backup-v1 bestaat al; niets overschreven.*NAl geinstalleerd? Of eerst Herstellen."
+  Skip fout
+EndIf
+IF NOT EXISTS "$B/AmiAgent/GUI-SAFE Status.info"
+  Set M "Pakket onvolledig ($B)."
+  Skip fout
+EndIf
+IF NOT EXISTS "$B/Work-lade/AmiAgent.info"
+  Set M "Pakket onvolledig (Work-lade)."
+  Skip fout
+EndIf
+Set AAja `RequestChoice "AmiAgent v2" "AmiAgent v2 installeren?*NBack-up eerst naar Work:AmiAgent/Backup-v1.*NSluit eerst het AmiAgent-venster." "Installeren|Annuleren"`
+IF NOT "$AAja" EQ "1"
+  Set M "Geannuleerd; er is niets gewijzigd."
+  Skip fout
+EndIf
+Echo "[1] back-up"
+MakeDir "$W/Backup-v1"
+Copy "$W/AmiAgent Bedienen Aan" "$W/AmiAgent Bedienen Uit" "$W/GSTest Mount" "$W/AmiAgent Schrijven Aan" "$W/Backup-v1" QUIET
+Copy Work:AmiAgent.info "$W/Backup-v1/Lade-AmiAgent.bak" QUIET
+Copy "$W/AmiAgent Start.info" "$W/AmiAgent Stop.info" "$W/AmiAgent Status.info" "$W/LeesMij.info" "$W/Backup-v1" QUIET
+Copy "$W/AmiAgent Schrijven Aan.info" "$W/AmiAgent Schrijven Uit.info" "$W/Backup-v1" QUIET
+IF NOT EXISTS "$W/Backup-v1/Lade-AmiAgent.bak"
+  Set M "Back-up mislukt; er is niets vervangen."
+  Skip fout
+EndIf
+IF NOT EXISTS "$W/Backup-v1/AmiAgent Schrijven Uit.info"
+  Set M "Back-up mislukt; er is niets vervangen."
+  Skip fout
+EndIf
+IF NOT EXISTS "$W/Backup-v1/AmiAgent Schrijven Aan"
+  Set M "Back-up mislukt; er is niets vervangen."
+  Skip fout
+EndIf
+Echo "[2] nieuwe en gewijzigde bestanden"
+Copy "$B/AmiAgent/#?" "$W" QUIET
+IF WARN
+  Set M "Kopieren mislukt. Herstel met AmiAgent v2 Herstellen."
+  Skip fout
+EndIf
+Copy "$B/Work-lade/AmiAgent.info" Work:AmiAgent.info QUIET
+Echo >"$W/Versie-v2" "AmiAgent A600 v2 (9.11.2026)"
+Echo "[3] klaar"
+RequestChoice >NIL: "AmiAgent v2" "AmiAgent v2 is geinstalleerd.*NOpen Work > AmiAgent opnieuw.*NBack-up: Work:AmiAgent/Backup-v1." "OK"
+Skip einde
+Lab fout
+Echo "NIET geinstalleerd: $M"
+RequestChoice >NIL: "AmiAgent v2" "NIET geinstalleerd.*N*N$M" "OK"
+Lab einde

@@ -7,3 +7,9 @@ CRED	AmiAgent-Installatie.adf	Contains Installeer (see the comment above). The i
 WB	AmiAgent-Installatie.adf	Names such as assign, icon.library and MultiView appear only inside the agent binary and script texts. The xdftool listing (18-10-2026) shows 27 own files and no Workbench files.
 IP	pi/mcp-amiga-ws.example.json	Fictive example address 192.168.1.60 from the documentation range used in AmiAgent docs; not a real host.
 IP	Prefs/WriteSafe.example	Fictive example address 192.168.1.145; the same example as AmiAgent docs/SECURITY.md, not a real host.
+IP	AmiAgent-GuiSafe/GSTest Mount	Fictive example server address 192.168.1.145 (documentation range used in AmiAgent docs); the installed copy uses the owner's own address. Checked 08-11-2026.
+IP	AmiAgent-GuiSafe/README.md	Fictive example address 192.168.1.145. Checked 08-11-2026.
+IP	AmiAgent-GuiSafe/Prefs/GuiMandaat.example	Fictive example address 192.168.1.145. Checked 08-11-2026.
+IP	AmiAgent-GuiSafe/samba/GuiSafeTest.example.conf	Fictive example address 192.168.1.60. Checked 08-11-2026.
+IP	AmiAgent-GuiSafe/docs/GEBRUIKERSHANDLEIDING-A600-V2.md	Fictive example addresses 192.168.1.x replacing the real ones; stated in the document. Checked 08-11-2026.
+IP	AmiAgent-GuiSafe/docs/TECHNISCHE-HANDLEIDING-A600-V2.md	Same as the user manual. Checked 08-11-2026.

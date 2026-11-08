@@ -169,3 +169,5 @@ See [`printing/amiairprint/`](../../printing/amiairprint/).
 ## Other packages
 
 [AmiAgent WRITE-SAFE](AmiAgent-WriteSafe/): place new files in `Work:Inbox` from an AI assistant, after a local yes/no. Optional and separate from the AirPrint package.
+
+[AmiAgent A600 v2 / GUI-SAFE](AmiAgent-GuiSafe/): one Workbench drawer for READONLY, WRITE-SAFE and GUI-SAFE; GUI-SAFE lets the assistant operate one allow-listed program after a local yes. Physically accepted (7/7 PASS), not yet fully security-validated, not released ([Issue 0004](../../docs/issues/0004-guisafe-client-not-enforced.md)).

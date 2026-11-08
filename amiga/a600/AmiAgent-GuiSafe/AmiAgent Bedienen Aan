@@ -1,0 +1,85 @@
+; $VER: AmiAgent Bedienen Aan 2.0 (9.11.2026) The Love Shack Network - AmiAgent A600 v2
+; Eenmalig GUI-SAFE-mandaat, alleen lokaal te geven. Eerst alle controles, pas daarna
+; wordt de READONLY-agent gestopt. Na afloop (tijd, aantal, focusverlies, Bedienen Uit
+; of weigering) start altijd weer de READONLY-agent. Meldingen: T:AmiAgent-gs.out.
+FailAt 21
+UnSet AAja
+IF NOT EXISTS Work:AmiAgent/amiagent-gs
+  Set AAm "amiagent-gs ontbreekt."
+  Skip fout
+EndIf
+IF NOT EXISTS Work:AmiAgent/Prefs/GuiSafe
+  Set AAm "Work:AmiAgent/Prefs/GuiSafe ontbreekt."
+  Skip fout
+EndIf
+IF NOT EXISTS Work:AmiAgent/Prefs/GuiMandaat
+  Set AAm "Geen lokaal mandaat*N(Work:AmiAgent/Prefs/GuiMandaat ontbreekt)."
+  Skip fout
+EndIf
+Lab controle
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF NOT WARN
+  Set AAm "GUI-SAFE is al actief; tweede activering geweigerd."
+  Skip fout
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
+IF NOT WARN
+  Set AAm "WRITE-SAFE is actief.*NBeeindig eerst met AmiAgent Schrijven Uit."
+  Skip fout
+EndIf
+Assign >NIL: EXISTS AmigaShare:
+IF NOT WARN
+  Set AAm "AmigaShare: is nog gekoppeld.*NStop eerst AmigaShare (AmigaShare Stop)."
+  Skip fout
+EndIf
+IF NOT EXISTS ENV:smbfs-process/GSTESTSMB
+  Set AAm "GSTest: is niet (geregistreerd) gekoppeld.*NKies eerst GSTest Mount."
+  Skip fout
+EndIf
+Assign >NIL: EXISTS GSTest:
+IF WARN
+  Set AAm "GSTest: ontbreekt.*NKies eerst GSTest Mount."
+  Skip fout
+EndIf
+IF "$AAja" EQ "1"
+  Skip start
+EndIf
+Set AAja `RequestChoice "AmiAgent GUI-SAFE" "Bediening toestaan?*NTextEngine, testmap GSTest:Tests/A600,*N15 min, max 300 acties.*NSchijven schrijfbeveiligd, geen Shell.*NVerwisselbare schijven eerst uitwerpen." "Ja|Nee"`
+IF NOT "$AAja" EQ "1"
+  UnSet AAja
+  RequestChoice >NIL: "AmiAgent GUI-SAFE" "Geen mandaat gegeven; er is niets gewijzigd." "OK"
+  Skip einde
+EndIf
+; opnieuw controleren: tijdens de vraag kan er iets veranderd zijn
+Skip controle BACK
+Lab start
+UnSet AAja
+Set AAi 0
+Lab wachtro
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  Skip rogestopt
+EndIf
+IF $AAi EQ 0 VAL
+  Set AAnr `Status COMMAND=Work:AmiAgent/amiagent`
+  Break $AAnr C
+EndIf
+Wait 1
+Set AAi `Eval $AAi + 1`
+IF NOT $AAi GE 15 VAL
+  Skip wachtro BACK
+EndIf
+Set AAm "De READONLY-agent stopt niet;*NGUI-SAFE niet gestart. READONLY draait nog."
+Skip fout
+Lab rogestopt
+Execute >T:AmiAgent-gs.out Work:AmiAgent/Prefs/GuiSafe
+; na afloop altijd READONLY terug (geen extra bevoegdheden bij een fout)
+Status >NIL: COMMAND=Work:AmiAgent/amiagent
+IF WARN
+  Run <NIL: >T:AmiAgent.log Work:AmiAgent/amiagent TOKENFILE=Work:AmiAgent/Prefs/Token
+EndIf
+Skip einde
+Lab fout
+UnSet AAja
+RequestChoice >NIL: "AmiAgent GUI-SAFE" "GUI-SAFE NIET gestart.*N*N$AAm" "OK"
+Lab einde

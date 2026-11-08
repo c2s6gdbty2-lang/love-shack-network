@@ -1,0 +1,2 @@
+; $VER: WRITE-SAFE 2.0 (9.11.2026) - uitleg AmiAgent-modus
+RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE: na jouw Ja nieuwe bestanden*Nin Work:Inbox (30 min, 20 bestanden).*NAmigaShare: nodig. Niet samen met GUI-SAFE." "OK"
