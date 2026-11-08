@@ -1,4 +1,4 @@
-; $VER: AmiAgent Schrijven Aan 1.1 (2.11.2026) The Love Shack Network
+; $VER: AmiAgent Schrijven Aan 1.2 (9.11.2026) The Love Shack Network
 ; Eenmalig schrijfmandaat, alleen lokaal te geven. Werkt vanuit Workbench (IconX)
 ; en vanuit een Shell, ongeacht de huidige map. Het mandaat bestaat alleen in het
 ; geheugen en kan niet verlengd worden. Instellingen: Work:AmiAgent/Prefs/WriteSafe.
@@ -26,6 +26,12 @@ IF NOT WARN
   RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is al actief.*N*NEen mandaat is eenmalig en kan niet verlengd worden.*NBeeindig het eerst via het pictogram*NAmiAgent Schrijven Uit." "OK"
   Skip einde
 EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF NOT WARN
+  Echo "GUI-SAFE is actief; WRITE-SAFE geweigerd."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE niet gestart.*N*NGUI-SAFE is actief. Beeindig eerst met*NAmiAgent Bedienen Uit. Er is niets gewijzigd." "OK"
+  Skip einde
+EndIf
 Set AAja `RequestChoice "AmiAgent WRITE-SAFE" "Schrijfmandaat geven?*N*NClaude mag nieuwe bestanden in Work:Inbox plaatsen:*Nmaximaal 30 minuten, 20 bestanden, elk tot 1024 KB.*NOverschrijven, Shell en systeemmappen blijven verboden." "Ja|Nee"`
 IF NOT "$AAja" EQ "1"
   Echo "Geen mandaat gegeven; er is niets gewijzigd."
@@ -37,6 +43,12 @@ Status >NIL: COMMAND=Work:AmiAgent/amiagent-ws
 IF NOT WARN
   Echo "WRITE-SAFE is al actief; tweede activering geweigerd."
   RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE is al actief.*N*NEen mandaat is eenmalig en kan niet verlengd worden.*NBeeindig het eerst via het pictogram*NAmiAgent Schrijven Uit." "OK"
+  Skip einde
+EndIf
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF NOT WARN
+  Echo "GUI-SAFE is actief; WRITE-SAFE geweigerd."
+  RequestChoice >NIL: "AmiAgent WRITE-SAFE" "WRITE-SAFE niet gestart.*N*NGUI-SAFE is actief. Beeindig eerst met*NAmiAgent Bedienen Uit. Er is niets gewijzigd." "OK"
   Skip einde
 EndIf
 IF NOT EXISTS Work:AmiAgent/Log

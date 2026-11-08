@@ -1,0 +1,2 @@
+; $VER: READONLY 2.0 (9.11.2026) - uitleg AmiAgent-modus
+RequestChoice >NIL: "AmiAgent READONLY" "READONLY is de standaard.*NClaude kan alleen kijken en lezen,*Nniet schrijven of bedienen.*N*NStatus, Start, Stop: de agent." "OK"

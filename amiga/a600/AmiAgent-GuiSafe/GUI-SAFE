@@ -1,0 +1,2 @@
+; $VER: GUI-SAFE 2.0 (9.11.2026) - uitleg AmiAgent-modus
+RequestChoice >NIL: "AmiAgent GUI-SAFE" "Volgorde: AmigaShare Stop, GSTest Mount,*NBedienen Aan, Bedienen Uit, GSTest Stop,*NAmigaShare Mount. Gotek eerst uitwerpen.*NNiet samen met WRITE-SAFE." "OK"

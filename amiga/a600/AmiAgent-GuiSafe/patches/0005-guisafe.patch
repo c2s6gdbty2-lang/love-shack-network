@@ -1,0 +1,218 @@
+--- a/agent/amiagent.c	2026-11-08 11:19:06.095407553 +0100
++++ b/agent/amiagent.c	2026-11-08 13:46:27.811381768 +0100
+@@ -152,7 +152,11 @@
+  *     OpenFromLock), never a handler such as CON:, SER: or PIPE:.
+  *   - local ARexx port: ACTIVATEWINDOW, ENTERTEXT/TYPE, KEY, TASKPRI refused.
+  * ------------------------------------------------------------------ */
++#ifdef AMIAGENT_GUISAFE
++#define AMIAGENT_LSN "lsn1 GUI-SAFE"
++#else
+ #define AMIAGENT_LSN "lsn1 READONLY"
++#endif
+ static const struct { const char *word; const char *cmd; } ro_cmds[] = {
+     { "Avail",      "C:Avail" },
+     { "Version",    "C:Version" },
+@@ -180,6 +184,16 @@
+     return NULL;
+ }
+ 
++#ifdef AMIAGENT_GUISAFE
++static int gs_gate(struct InputEvent *ie);
++static int gs_text_ok(const UBYTE *p, ULONG len);
++static int gs_input_ok(void);
++static void gs_touch(void);
++static int gs_tick(void);
++static void gs_shutdown(void);
++struct buf;
++static int gs_info(struct buf *b);
++#endif
+ static int ro_blocked(UBYTE code)
+ {
+     return code == 0x04 /* PUT */ || code == 0x12 /* AREXX */ ||
+@@ -1201,6 +1215,9 @@
+ 
+     sprintf(line, "agent=amiagent %s\n", AMIAGENT_VERSION); ok &= buf_str(&b, line);
+     sprintf(line, "build=%s\n", AMIAGENT_LSN); ok &= buf_str(&b, line);
++#ifdef AMIAGENT_GUISAFE
++    ok &= gs_info(&b);
++#endif
+     sprintf(line, "kickstart=%ld.%ld\n", (long)sb->LibNode.lib_Version,
+             (long)sb->LibNode.lib_Revision); ok &= buf_str(&b, line);
+     sprintf(line, "dos.library=%ld\n",
+@@ -1850,6 +1867,10 @@
+ static struct MsgPort *g_inport = NULL;
+ static struct IOStdReq *g_inreq = NULL;
+ 
++#ifdef AMIAGENT_GUISAFE
++#include "guisafe.c"
++#endif
++
+ static int input_open(void)
+ {
+     if (g_inreq) return 1;
+@@ -1884,6 +1905,9 @@
+ 
+ static void input_post(struct InputEvent *ie)
+ {
++#ifdef AMIAGENT_GUISAFE
++    if (gs_gate(ie)) return;
++#endif
+     g_inreq->io_Command = IND_WRITEEVENT;
+     g_inreq->io_Flags = 0;
+     g_inreq->io_Length = sizeof(struct InputEvent);
+@@ -2089,6 +2113,9 @@
+ 
+     if (!len) return send_err(sock, "empty input request");
+     if (!input_open()) return send_err(sock, "cannot open input.device");
++#ifdef AMIAGENT_GUISAFE
++    g_gs.refused = 0;
++#endif
+ 
+     op = p[0];
+     p++; len--;
+@@ -2111,12 +2138,19 @@
+ 
+     case IN_TEXT: {
+         ULONG i;
++#ifdef AMIAGENT_GUISAFE
++        if (!gs_text_ok(p, len)) { gs_refuse("text: path outside TESTDIR"); return send_err(sock, "GUI-SAFE: text names a path outside TESTDIR; session closed"); }
++        g_gs.in_text = 1;
++#endif
+         for (i = 0; i < len; i++) {
+             input_char(p[i]);
+             /* A tick between characters: the input queue is shallow, and
+              * applications that poll rather than buffer drop anything faster. */
+             Delay(1);
+         }
++#ifdef AMIAGENT_GUISAFE
++        g_gs.in_text = 0;
++#endif
+         break;
+     }
+ 
+@@ -2192,6 +2226,13 @@
+         return send_err(sock, "unknown input op");
+     }
+ 
++#ifdef AMIAGENT_GUISAFE
++    if (g_gs.refused) {
++        char m[140];
++        sprintf(m, "GUI-SAFE: refused (%.90s); session closed", g_gs.refusemsg);
++        return send_err(sock, m);
++    }
++#endif
+     say("input: op %ld\n", (long)op);
+     return send_resp(sock, ST_OK, NULL, 0);
+ }
+@@ -2885,6 +2926,10 @@
+     case CMD_AREXX:   return "AREXX";
+     case CMD_REXXPORTS: return "REXXPORTS";
+     case CMD_GETRANGE:  return "GETRANGE";
++#ifdef AMIAGENT_GUISAFE
++    case 0x41:          return "LAUNCH";
++    case 0x42:          return "GSEND";
++#endif
+     default:          return "?";
+     }
+ }
+@@ -3040,8 +3085,15 @@
+             break;
+         }
+ 
++#ifdef AMIAGENT_GUISAFE
++        gs_touch();
++#endif
+ #ifdef AMIAGENT_READONLY
++#ifdef AMIAGENT_GUISAFE
++        if (ro_blocked(code) && !(code == CMD_INPUT && gs_input_ok())) {
++#else
+         if (ro_blocked(code)) {
++#endif
+             char msg[96];
+             say("readonly: %s refused\n", cmd_name(code));
+             sprintf(msg, "READONLY: %s is disabled in this read-only agent", cmd_name(code));
+@@ -3069,6 +3121,10 @@
+         case CMD_AREXX: do_arexx(sock, body, len); break;
+         case CMD_REXXPORTS: do_rexxports(sock); break;
+         case CMD_GETRANGE: do_getrange(sock, body, len); break;
++#ifdef AMIAGENT_GUISAFE
++        case CMD_LAUNCH: do_launch(sock); break;
++        case CMD_GSEND: gs_close("client"); send_resp(sock, ST_OK, NULL, 0); break;
++#endif
+         case CMD_INPUT: do_input(sock, body, len); break;
+         case CMD_BREAK: do_break(sock); break;
+         default:       send_err(sock, "unknown command"); break;
+@@ -3226,7 +3282,12 @@
+  * Entry point
+  * ------------------------------------------------------------------ */
+ 
++#ifdef AMIAGENT_GUISAFE
++static const char *TEMPLATE = "PORT/N,TLSPORT/N,TOKEN/K,QUIET/S,VERBOSE/S,TOKENFILE/K,"
++    "APP/K,ALLOW/K,TESTDIR/K,CLIENT/K,GUIMIN/K/N,GUIMAX/K/N,IDLESEC/K/N,PROTECT/K,EXEMPT/K,NOTIFY/K,MANDATE/K";
++#else
+ static const char *TEMPLATE = "PORT/N,TLSPORT/N,TOKEN/K,QUIET/S,VERBOSE/S,TOKENFILE/K";
++#endif
+ 
+ struct args {
+     LONG *port;
+@@ -3235,6 +3296,11 @@
+     LONG quiet;      /* accepted and ignored: quiet is now the default */
+     LONG verbose;
+     STRPTR tokenfile; /* LSN 0003 */
++#ifdef AMIAGENT_GUISAFE
++    STRPTR app, allow, testdir, client;
++    LONG *guimin, *guimax, *idlesec;
++    STRPTR protect, exempt, notify, mandate;
++#endif
+ };
+ 
+ /* LSN 0003: read the token from a file instead of the command line, so it
+@@ -3396,6 +3462,28 @@
+             self->pr_WindowPtr = oldwinptr;
+             return RETURN_FAIL;
+         }
++#ifdef AMIAGENT_GUISAFE
++        {
++            const char *why;
++            if (!g_have_token) why = "a token is required";
++            else if (a.mandate && !gs_mandate_file((const char *)a.mandate)) why = "MANDATE file not readable";
++            else why = gs_arm(gs_mv((const char *)a.app, 9), gs_mv((const char *)a.allow, 0),
++                              gs_mv((const char *)a.testdir, 1), gs_mv((const char *)a.client, 2),
++                              gs_mn(a.guimin, 3, 0), gs_mn(a.guimax, 4, 0), gs_mn(a.idlesec, 5, 120),
++                              gs_mv((const char *)a.protect, 6), gs_mv((const char *)a.exempt, 7),
++                              gs_mv((const char *)a.notify, 8));
++            if (why) {
++                char msg[260];
++                gs_log("MANDAAT-GEWEIGERD", why);
++                gs_shutdown();
++                sprintf(msg, "amiagent-gs: GUI mandate refused: %.200s", why);
++                FreeArgs(rda);
++                fail("%s", msg);
++                self->pr_WindowPtr = oldwinptr;
++                return RETURN_FAIL;
++            }
++        }
++#endif
+         FreeArgs(rda);
+     }
+ #ifdef AMIAGENT_SSL
+@@ -3525,6 +3613,9 @@
+         if (sigs & SIGBREAKF_CTRL_C) { say("\namiagent: stopping.\n"); break; }
+         if (portsig && (sigs & portsig)) rexxhost_drain();
+         if (g_stop) { note("amiagent: stopping (ARexx QUIT).\n"); break; }
++#ifdef AMIAGENT_GUISAFE
++        if (gs_tick()) { note("amiagent-gs: session over, stopping.\n"); break; }
++#endif
+         if (n <= 0) { board_poll_job(); continue; }
+ 
+         if (FD_ISSET(listener, &rd)) {
+@@ -3550,6 +3641,9 @@
+     board_close();
+ 
+ out:
++#ifdef AMIAGENT_GUISAFE
++    gs_shutdown();
++#endif
+     rexxhost_close();
+     input_close();
+     if (CyberGfxBase) CloseLibrary(CyberGfxBase);

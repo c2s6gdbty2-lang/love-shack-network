@@ -1,0 +1,38 @@
+; $VER: GSTest Stop 2.0 (9.11.2026) The Love Shack Network - AmiAgent A600 v2
+; Ontkoppelt GSTest: met Break C naar het geregistreerde smbfs-proces.
+; Weigert zolang GUI-SAFE actief is. smbfs stopt niet zolang bestanden of
+; vensters op GSTest: open zijn; dan meldt dit script dat en blijft GSTest: staan.
+FailAt 21
+Status >NIL: COMMAND=Work:AmiAgent/amiagent-gs
+IF NOT WARN
+  RequestChoice >NIL: "GSTest Stop" "GSTest: NIET ontkoppeld.*N*NGUI-SAFE is nog actief.*NBeeindig eerst met AmiAgent Bedienen Uit." "OK"
+  Skip einde
+EndIf
+IF NOT EXISTS ENV:smbfs-process/GSTESTSMB
+  Assign >NIL: EXISTS GSTest:
+  IF WARN
+    RequestChoice >NIL: "GSTest Stop" "GSTest: is niet gekoppeld." "OK"
+  Else
+    RequestChoice >NIL: "GSTest Stop" "GSTest: bestaat zonder registratie*N(oude koppeling zonder SETENV).*NDie verdwijnt pas na uitschakelen van de A600." "OK"
+  EndIf
+  Skip einde
+EndIf
+Copy ENV:smbfs-process/GSTESTSMB ENV:GSpid QUIET
+Set GSi 0
+Lab breek
+Break $GSpid C
+Wait 2
+IF NOT EXISTS ENV:smbfs-process/GSTESTSMB
+  Skip weg
+EndIf
+Set GSi `Eval $GSi + 1`
+IF NOT $GSi GE 5 VAL
+  Skip breek BACK
+EndIf
+Delete >NIL: ENV:GSpid QUIET
+RequestChoice >NIL: "GSTest Stop" "GSTest: NIET ontkoppeld: nog in gebruik.*N*NSluit vensters en programma's op GSTest:*Nen kies opnieuw GSTest Stop." "OK"
+Skip einde
+Lab weg
+Delete >NIL: ENV:GSpid QUIET
+RequestChoice >NIL: "GSTest Stop" "GSTest: is ontkoppeld.*N*NAmigaShare weer koppelen:*NWork:AmigaShare > AmigaShare Mount." "OK"
+Lab einde

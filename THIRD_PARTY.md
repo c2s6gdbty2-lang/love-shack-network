@@ -19,7 +19,7 @@
 | Kickstart ROM, Workbench 3.1 | KS 40.63 / 45.66, WB 40.42 | proprietary | your own copy | base system | **Never** | – |
 | Genesis and other commercial software | – | proprietary | – | not used | **Never** | – |
 | amitools (`xdftool`) | – | GPL-2.0 | PyPI `amitools` | build tool only | No | – |
-| **amimcp / amiagent, amimon, amimon.info** | 0.13.2, upstream commit `3145dee` (2026), with LSN patches 0001–0003 (WRITE-SAFE: also 0004 and `writesafe.c`) | **Apache-2.0** © 2026 Thomas Luebker. The upstream NOTICE lists vendored CyberGraphX SDK interface files (phase5), declarations only. | github.com/thomas-luebker/amimcp at `3145dee` | AmiAgent: the agent on the Amiga and the MCP server on the Pi | The source is **not** in git (cloned at build time). In git, all under Apache-2.0: the patches, the unchanged licence text and NOTICE (`amiga/a500-pistorm/AmiAgent/LICENSE-amimcp`, `NOTICE-amimcp`), and `icons/amimon.info` (upstream icon, made by its `mkicon.py`). The built agent with `LICENSE` and `NOTICE` goes onto `AmiAgent-Installatie.adf` | amiagent (READONLY) `bb2f0daf…14ed`, amimon `844f8dee…c06b` |
+| **amimcp / amiagent, amimon, amimon.info** | 0.13.2, upstream commit `3145dee` (2026), with LSN patches 0001–0003 (WRITE-SAFE: also 0004 and `writesafe.c`; GUI-SAFE: also 0005 and `guisafe.c`, not released) | **Apache-2.0** © 2026 Thomas Luebker. The upstream NOTICE lists vendored CyberGraphX SDK interface files (phase5), declarations only. | github.com/thomas-luebker/amimcp at `3145dee` | AmiAgent: the agent on the Amiga and the MCP server on the Pi | The source is **not** in git (cloned at build time). In git, all under Apache-2.0: the patches, the unchanged licence text and NOTICE (`amiga/a500-pistorm/AmiAgent/LICENSE-amimcp`, `NOTICE-amimcp`), and `icons/amimon.info` (upstream icon, made by its `mkicon.py`). The built agent with `LICENSE` and `NOTICE` goes onto `AmiAgent-Installatie.adf` | amiagent (READONLY) `bb2f0daf…14ed`, amimon `844f8dee…c06b` |
 
 ### AmiAirPrint licence check (repeated 17-10-2026)
 
@@ -48,6 +48,7 @@
   - AmiAgent: the scripts, `amimcp-ro.py`, `amimcp-lsn`, `lsn-token`, the build scripts (including `amiagent_icons.py`) and the tests;
   - the build scripts `build_public.py`, `icon.py` and `asm68k.py`;
   - `publish-check.py`.
+- **AmiAgent A600 v2 (GUI-SAFE)**: the scripts, icons and install scripts in `amiga/a600/AmiAgent-GuiSafe/` (MIT); its manuals and screenshots (CC BY 4.0). The screenshots show TextEngine 5.2 (freeware by Nicholas Harvey, not included) and Workbench windows, only to document the tested behaviour.
 - **Assets**: the icons (made with `icon.py`; the AmiAgent disk icon is drawn by `amiagent_icons.py`) and the test image `TestBeeld.iff`. Exception: `amiga/a500-pistorm/AmiAgent/icons/amimon.info` is upstream amimcp's (Apache-2.0).
 - **Server scripts**: the print-watcher scripts and systemd units in `server/retro-print/`. They combine the owner's macOS originals, a port of 03-10-2026 whose author is not recorded, and assistant-made changes of 06-10-2026. See [`server/retro-print/PROVENANCE.md`](server/retro-print/PROVENANCE.md). No exclusive authorship is claimed.
 
@@ -57,6 +58,7 @@ Two derivative works keep their upstream licence:
 |---|---|
 | `AmiAirPrint-1.2-ps1.diff` | MIT |
 | `amiga/a500-pistorm/AmiAgent/patches/*.patch` | Apache-2.0 (changes to amimcp's `agent/amiagent.c`) |
+| `amiga/a600/AmiAgent-GuiSafe/patches/0005-guisafe.patch`, `src/guisafe.c` | Apache-2.0 (changes to amimcp's `agent/amiagent.c`) |
 
 ### The C runtime inside amiagent and amimon (checked 18-10-2026)
 

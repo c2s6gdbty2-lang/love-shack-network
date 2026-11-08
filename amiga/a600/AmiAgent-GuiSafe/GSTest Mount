@@ -1,0 +1,51 @@
+; $VER: GSTest Mount 2.0 (9.11.2026) The Love Shack Network - AmiAgent A600 v2
+; Koppelt de GUI-SAFE-testshare //192.168.1.145/GuiSafeTest als GSTest: (smbfs,
+; DEVICE=GSTESTSMB, SETENV registreert het procesnummer). AmigaShare: moet eerst
+; ontkoppeld zijn. Wachtwoord in Work:AmiAgent/Prefs/GSTestWachtwoord (protectie r).
+FailAt 21
+IF NOT EXISTS Work:AmigaShare/C/smbfs
+  RequestChoice >NIL: "GSTest Mount" "GSTest: NIET gekoppeld.*N*NWork:AmigaShare/C/smbfs ontbreekt." "OK"
+  Skip einde
+EndIf
+IF NOT EXISTS Work:AmiAgent/Prefs/GSTestWachtwoord
+  RequestChoice >NIL: "GSTest Mount" "GSTest: NIET gekoppeld.*N*NGeen wachtwoord ingesteld*N(Work:AmiAgent/Prefs/GSTestWachtwoord)." "OK"
+  Skip einde
+EndIf
+IF EXISTS ENV:smbfs-process/GSTESTSMB
+  RequestChoice >NIL: "GSTest Mount" "GSTest: is al gekoppeld.*NEr wordt geen tweede koppeling gestart." "OK"
+  Skip einde
+EndIf
+Assign >NIL: EXISTS GSTest:
+IF NOT WARN
+  RequestChoice >NIL: "GSTest Mount" "GSTest: bestaat al, maar zonder registratie*N(oude koppeling zonder SETENV).*NDie verdwijnt pas na uitschakelen van de A600." "OK"
+  Skip einde
+EndIf
+Assign >NIL: EXISTS AmigaShare:
+IF NOT WARN
+  RequestChoice >NIL: "GSTest Mount" "GSTest: NIET gekoppeld.*N*NStop eerst AmigaShare*N(Work:AmigaShare > AmigaShare Stop)." "OK"
+  Skip einde
+EndIf
+Work:AmiAgent/C/Geladen bsdsocket.library
+IF WARN
+  RequestChoice >NIL: "GSTest Mount" "GSTest: NIET gekoppeld.*N*NEr draait nog geen netwerk." "OK"
+  Skip einde
+EndIf
+Stack 30000
+Set GSpw `Type Work:AmiAgent/Prefs/GSTestWachtwoord`
+Run <NIL: >T:GSTest-smbfs.txt Work:AmigaShare/C/smbfs SHARE=//192.168.1.145/GuiSafeTest USER=gstest PASSWORD=$GSpw VOLUME=GSTest DEVICE=GSTESTSMB PROTOCOL=nt1 SETENV
+UnSet GSpw
+Set GSi 0
+Lab wacht
+Wait 3
+IF EXISTS ENV:smbfs-process/GSTESTSMB
+  Skip gekoppeld
+EndIf
+Set GSi `Eval $GSi + 1`
+IF NOT $GSi GE 20 VAL
+  Skip wacht BACK
+EndIf
+RequestChoice >NIL: "GSTest Mount" "GSTest: NIET gekoppeld binnen 60 s.*N*NZie T:GSTest-smbfs.txt." "OK"
+Skip einde
+Lab gekoppeld
+RequestChoice >NIL: "GSTest Mount" "GSTest: is gekoppeld.*N*NVolgende stap: AmiAgent Bedienen Aan.*NOntkoppelen: GSTest Stop." "OK"
+Lab einde
